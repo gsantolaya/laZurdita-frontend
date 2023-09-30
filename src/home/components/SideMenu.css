@@ -1,0 +1,40 @@
+.sideMenuContainer {
+    padding-top: 50px;
+    min-height: 70vh;
+}
+
+.sideMenuLinks {
+    color: white !important;
+    font-weight: bold !important;
+    border: solid #22223b;
+    border-radius: 20px;
+    margin: 10px;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    text-decoration: none;
+}
+
+.active {
+    background-color: #22223b !important;
+    color: white !important;
+}
+
+.sideMenuLinks:hover {
+    transform: scale(1.05)
+}
+
+.log {
+    margin-top: 50px;
+    color: #22223b !important;
+    font-weight: bold !important;
+}
+
+.log:hover {
+    text-decoration: underline !important;
+}
+
+@media screen and (max-width: 576px) {
+    .sideMenuContainer {
+        display: none !important;
+    }
+}

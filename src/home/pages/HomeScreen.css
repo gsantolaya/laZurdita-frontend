@@ -1,0 +1,13 @@
+.sideMenuContainer {
+    background-color: #9a8c98 !important;
+}
+
+.mainContainer {
+    background-color: #f2e9e4 !important;
+}
+
+@media screen and (max-width: 576px) {
+    .sideMenu {
+        display: none !important;
+    }
+}
