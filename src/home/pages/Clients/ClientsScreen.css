@@ -1,0 +1,14 @@
+.buttonAddClient {
+    font-weight: bold !important;
+    border: solid white;
+    border-radius: 20px;
+    margin: 5px;
+    padding: 3px !important;
+    text-decoration: none;
+    width: 100%;
+    color: black !important;
+    background-color: white !important;
+  }
+  .buttonAddClient:hover {
+    transform: scale(1.05)
+  }
