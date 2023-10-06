@@ -26,8 +26,9 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
     if (selectedProduct) {
       reset({
         type: selectedProduct.type,
-        description: selectedProduct.description || '',
-        value: selectedProduct.value,
+        unitPrice: selectedProduct.unitPrice,
+        retailPrice: selectedProduct.retailPrice,
+        wholesalePrice: selectedProduct.wholesalePrice,
         stock: selectedProduct.stock,
       });
     }
@@ -39,8 +40,9 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
     try {
       const updatedProduct = {
         type: formData.type,
-        description: formData.description,
-        value: formData.value,
+        unitPrice: formData.unitPrice,
+        retailPrice: formData.retailPrice,
+        wholesalePrice: formData.wholesalePrice,
         stock: formData.stock,
       }
       const config = {
@@ -83,26 +85,39 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
                 />
                 {errors?.type && (<span className="authSpan">Este campo es requerido</span>)}
               </Form.Group>
-              <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicDescription">
-                <Form.Label>Descripción</Form.Label>
-                <Form.Control
-                  type="text"
-                  maxLength={30}
-                  name="description"
-                  placeholder="Ingrese la descripción"
-                  {...register('description', { required: false })}
-                  defaultValue={selectedProduct.description}
-                />
-              </Form.Group>
-              <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicValue">
-                <Form.Label>Precio</Form.Label>
+              <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicUnitPrice">
+                <Form.Label>Precio por unidad</Form.Label>
                 <Form.Control
                   type="number"
                   maxLength={20}
-                  name="value"
+                  name="unitPrice"
                   placeholder="Ingrese el precio"
-                  {...register('value', { required: true })}
-                  defaultValue={selectedProduct.value}
+                  {...register('unitPrice', { required: true })}
+                  defaultValue={selectedProduct.wholesalePrice}
+                />
+                {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
+              </Form.Group>
+              <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicRetailPrice">
+                <Form.Label>Precio minorista</Form.Label>
+                <Form.Control
+                  type="number"
+                  maxLength={20}
+                  name="retailPrice"
+                  placeholder="Ingrese el precio"
+                  {...register('retailPrice', { required: true })}
+                  defaultValue={selectedProduct.retailPrice}
+                />
+                {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
+              </Form.Group>
+              <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicWholesalePrice">
+                <Form.Label>Precio mayorista</Form.Label>
+                <Form.Control
+                  type="number"
+                  maxLength={20}
+                  name="wholesalePrice"
+                  placeholder="Ingrese el precio"
+                  {...register('wholesalePrice', { required: true })}
+                  defaultValue={selectedProduct.wholesalePrice}
                 />
                 {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
               </Form.Group>

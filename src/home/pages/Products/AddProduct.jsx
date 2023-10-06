@@ -26,23 +26,23 @@ export const AddProduct = ({ show, onHide, fetchProducts }) => {
     //FUNCION PARA AGREGAR UN PRODUCTO
     const handleAddProductFormSubmit = async (data) => {
         try {
-          const response = await axios.post('/products', { ...data }, {
-            headers: {
-              "access-token": store.token
+            const response = await axios.post('/products', { ...data }, {
+                headers: {
+                    "access-token": store.token
+                }
+            })
+            if (response.status === 201) {
+                onHide()
+                fetchProducts()
+                reset()
+                setShowConfirmationAddProductToast(true)
             }
-          })
-          if (response.status === 201) {
-            onHide()
-            fetchProducts()
-            reset()
-            setShowConfirmationAddProductToast(true)
-          }
         } catch (error) {
-          onHide()
-          setShowErrorAddProductToast(true)
-          console.error(error)
+            onHide()
+            setShowErrorAddProductToast(true)
+            console.error(error)
         }
-      }
+    }
 
     return (
         <>
@@ -56,27 +56,35 @@ export const AddProduct = ({ show, onHide, fetchProducts }) => {
                 <Modal.Body className='modalBody'>
                     <Form className='d-flex flex-wrap justify-content-center' onSubmit={handleSubmit(handleAddProductFormSubmit)}>
                         <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicType">
-                            <Form.Label>Variedad</Form.Label>
+                            <Form.Label>Variedad:</Form.Label>
                             <Form.Control type="text" maxLength={30} name="type" placeholder="Ingrese la variedad"
                                 {...register("type", { required: true })}
                             />
                             {errors?.type && (<span className="authSpan">Este campo es requerido</span>)}
                         </Form.Group>
-                        <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicDescription">
-                            <Form.Label>Descripción</Form.Label>
-                            <Form.Control type="text" maxLength={30} name="description" placeholder="Ingrese la descripción"
-                                {...register("description", { required: false })}
+                        <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicUnitPrice">
+                            <Form.Label>Precio por unidad:</Form.Label>
+                            <Form.Control type="number" maxLength={20} name="unitPrice" placeholder="Ingrese el precio"
+                                {...register("unitPrice", { required: true })}
                             />
+                            {errors?.wholesalePrice && (<span className="authSpan">Este campo es requerido</span>)}
                         </Form.Group>
-                        <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicValue">
-                            <Form.Label>Precio</Form.Label>
-                            <Form.Control type="number" maxLength={20} name="value" placeholder="Ingrese el precio"
-                                {...register("value", { required: true })}
+                        <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicRetailPrice">
+                            <Form.Label>Precio Minorista:</Form.Label>
+                            <Form.Control type="number" maxLength={20} name="retailPrice" placeholder="Ingrese el precio"
+                                {...register("retailPrice", { required: true })}
                             />
-                            {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
+                            {errors?.retailPrice && (<span className="authSpan">Este campo es requerido</span>)}
+                        </Form.Group>
+                        <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicWholesalePrice">
+                            <Form.Label>Precio Mayorista:</Form.Label>
+                            <Form.Control type="number" maxLength={20} name="wholesalePrice" placeholder="Ingrese el precio"
+                                {...register("wholesalePrice", { required: true })}
+                            />
+                            {errors?.wholesalePrice && (<span className="authSpan">Este campo es requerido</span>)}
                         </Form.Group>
                         <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicStock">
-                            <Form.Label>Stock</Form.Label>
+                            <Form.Label>Stock:</Form.Label>
                             <Form.Control type="number" maxLength={20} name="stock" placeholder="Ingrese el stock"
                                 {...register("stock", { required: true })}
                             />

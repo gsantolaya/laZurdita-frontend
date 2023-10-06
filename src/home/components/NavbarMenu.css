@@ -1,5 +1,5 @@
 .navContainer {
-    background-color: #22223b;
+    background-color: #595858;
 }
 
 .containerNavLink {
@@ -8,8 +8,7 @@
     align-items: center;
 }
 .appLogoNavbar{
-    width: 50px;
-    height: 50px;
+    height: 51px;
 }
 .navLinks {
     color: white !important;
@@ -23,7 +22,7 @@
 }
 
 .navDropdownLinksTitle {
-    background-color: #22223b !important;
+    background-color: #595858 !important;
     color: white !important;
     margin: 10px !important;
     padding: 0px !important;
@@ -36,13 +35,13 @@
 }
 
 .navDropdownLinks {
-    background-color: #22223b !important;
+    background-color: #595858 !important;
     font-weight: bold !important;
 
 }
 
 .navLinks:hover {
-    color: #22223b !important;
+    color: #595858 !important;
     background-color: white !important;
     transform: scale(1.05)
 }
@@ -92,13 +91,13 @@
 .userNameLink:hover {
     transform: scale(1.05);
     background-color: #d89841 !important;
-    color: #22223b !important;
+    color: #595858 !important;
 
 }
 
 .smallScreen {
     display: none !important;
-    background-color: #22223b !important;
+    background-color: #595858 !important;
     cursor: pointer !important;
 }
 

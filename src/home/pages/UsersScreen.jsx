@@ -185,8 +185,8 @@ export const UsersScreen = () => {
   return (
     <>
       <div className='text-center p-5 table-container'>
-        <h1 className="title mb-3"><b>Bienvenid@ {decodedToken.firstName}</b></h1>
-        <h4 className="text-start title mb-3"><b>Mi usuario:</b></h4>
+        <h1 className="title mb-3 productTitle"><b>Bienvenid@ {decodedToken.firstName}</b></h1>
+        <h4 className="text-start title mb-3 productTitle"><b>Mi usuario:</b></h4>
         <Table striped bordered hover>
           <tbody>
             {
@@ -215,13 +215,13 @@ export const UsersScreen = () => {
       </div>
       {decodedToken.isAdmin && (
         <div className='text-center px-5 table-container mt-5 mt-md-0'>
-          <h4 className="text-start title mb-3"><b>Otros Usuarios:</b></h4>
+          <h4 className="text-start title mb-3 productTitle"><b>Otros Usuarios:</b></h4>
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className='homeText'>Usuario</th>
-                <th className='homeText'>Apellido y Nombre</th>
-                <th className='homeText'>Tipo de cuenta</th>
+                <th className='homeText productTitle'>Usuario</th>
+                <th className='homeText productTitle'>Apellido y Nombre</th>
+                <th className='homeText productTitle'>Tipo de cuenta</th>
                 <th></th>
               </tr>
             </thead>

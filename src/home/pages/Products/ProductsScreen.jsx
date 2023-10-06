@@ -116,7 +116,7 @@ export const ProductsScreen = () => {
   return (
     <>
       <div className='text-center p-5'>
-        <h1 className='mb-5 title'><b>Listado de Productos</b></h1>
+        <h1 className='mb-5 productTitle'><b>Listado de Empanadas</b></h1>
         <div className='row d-md-flex'>
           <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
             <InputGroup>
@@ -134,7 +134,7 @@ export const ProductsScreen = () => {
           </div>
           <div className='col-12 col-xl-3 my-2 my-md-0'>
             <Form.Group className='d-flex' controlId="orderOptionForm">
-              <Form.Label className='w-50' column sm={2}><b className='homeText'>Ordenar por:</b></Form.Label>
+              <Form.Label className='w-50' column sm={2}><b className='homeText productTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
                 <option value="Variedad ↓">Variedad ↓</option>
                 <option value="Variedad ↑">Variedad ↑</option>
@@ -144,32 +144,33 @@ export const ProductsScreen = () => {
             </Form.Group>
           </div>
           <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
-            <Nav.Link className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Producto</Nav.Link>
+            <Nav.Link className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Empanada</Nav.Link>
           </div>
         </div>
-
         <div className='table-container mt-4' >
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className='homeText text-center'>ID</th>
-                <th className='homeText text-center'>Variedad</th>
-                <th className='homeText text-center'>Descripción</th>
-                <th className='homeText text-center'>Precio</th>
-                <th className='homeText text-center'>Stock</th>
+                <th className='homeText text-center align-middle productTitle'>ID</th>
+                <th className='homeText text-center align-middle productTitle'>Variedad</th>
+                <th className='homeText text-center align-middle productTitle'>Precio por unidad</th>
+                <th className='homeText text-center align-middle productTitle'>Precio Minorista</th>
+                <th className='homeText text-center align-middle productTitle'>Precio Mayorista</th>
+                <th className='homeText text-center align-middle productTitle'>Stock</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.slice().sort(compareProducts).map((product) => (
                 <tr key={product._id}>
-                  <td className="text-center">{product._id}</td>
-                  <td className="text-center">{product.type}</td>
-                  <td className="text-center">{product.description}</td>
-                  <td className="text-center">{product.value}</td>
-                  <td className="text-center">{product.stock}</td>
-                  <td className="text-center">
-                    <Button className='m-1' onClick={() => handleShowEditProductModal(product)} variant="secondary">
+                  <td className="text-center align-middle">{product._id}</td>
+                  <td className="text-center align-middle">{product.type}</td>
+                  <td className="text-center align-middle">{product.unitPrice}</td>
+                  <td className="text-center align-middle">{product.retailPrice}</td>
+                  <td className="text-center align-middle">{product.wholesalePrice}</td>
+                  <td className="text-center align-middle">{product.stock}</td>
+                  <td className="text-center align-middle">
+                    <Button className='m-1 editButton' onClick={() => handleShowEditProductModal(product)} variant="">
                       <span className="d-flex align-items-center justify-content-center">
                         <FaEdit />
                       </span>

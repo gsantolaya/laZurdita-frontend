@@ -7,7 +7,7 @@ import { tokenIsValid } from '../../utils/TokenIsValid';
 import { FaUserAlt } from "react-icons/fa";
 // import NavDropdown from 'react-bootstrap/NavDropdown';
 import { useNavigate } from 'react-router-dom';
-// import logoNavbar from '../components/img/Picsart_23-08-25_21-47-45-119.png';
+import logoNavbar from '../components/img/Imagen_de_WhatsApp_2023-10-02_a_las_15.55.47_72f6c6c6-removebg-preview.png'
 
 
 export function NavbarMenu() {
@@ -31,8 +31,7 @@ export function NavbarMenu() {
     <Navbar className="navContainer p-1" variant="dark" expand="lg">
       <Container className='mx-4 ms-auto px-4'>
         <Navbar.Brand className='bigScreen d-flex' onClick={handleNavClick}>
-          {/* <img src={logoNavbar} className="appLogoNavbar" alt="logo" /> */}
-          <h4 className='ms-2 my-2'><i>La Zurdita</i></h4>
+          <img src={logoNavbar} className="appLogoNavbar" alt="logo" />
           </Navbar.Brand>
       </Container>
       <Container className='mx-4 ms-auto px-4'>

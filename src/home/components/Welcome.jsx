@@ -6,7 +6,7 @@ export const Welcome = () => {
     return (
         <>
             <div className='welcomeContainer text-center'>
-                <h1 className='p-3 textWelcome'><b>Bienvenido a La Zurdita App</b></h1>
+                <h1 className='m-5 p-5 welcomeTitle'><b>Bienvenido a La Zurdita App</b></h1>
                 {/* <img src={logo} className=" mb-5 appLogo" alt="logo" /> */}
             </div>
         </>

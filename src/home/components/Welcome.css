@@ -1,11 +1,10 @@
 .welcomeContainer {
-    background-color: #f2e9e4  !important;
-    color: #22223b !important;
+    background-color: #fff5d7 !important;
+    color: #5f3c23 !important;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 73vh;
   }
   
   .appLogo {

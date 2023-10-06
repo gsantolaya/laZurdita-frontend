@@ -12,7 +12,7 @@ export function SideMenu() {
   };
 
   return (
-    <Nav className="flex-column sideMenuContainer col-12 text-center">
+    <Nav className="flex-column sideMenuContainer col-12">
       <Nav.Link className={`sideMenuLinks ${isActive('/home/products')}`} href="/home/products">
         Productos
       </Nav.Link>
@@ -27,6 +27,9 @@ export function SideMenu() {
       </Nav.Link>
       <Nav.Link className={`sideMenuLinks ${isActive('/home/arqueo')}`} href="/home/arqueo">
         Arqueo
+      </Nav.Link>
+      <Nav.Link className={`sideMenuLinks ${isActive('/home/comandas')}`} href="/home/comandas">
+        Comandas
       </Nav.Link>
       <Nav.Link className="log" href="/" onClick={handleLogout}>
         Cerrar Sesión

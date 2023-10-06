@@ -1,6 +1,6 @@
-.buttonAddProduct {
+.buttonAddSale {
     font-weight: bold !important;
-    border: solid #5f3c23;
+    border: solid white;
     border-radius: 20px;
     margin: 5px;
     padding: 3px !important;
@@ -9,13 +9,20 @@
     color: white !important;
     background-color: #5f3c23 !important;
   }
-  .buttonAddProduct:hover {
+  .buttonAddSale:hover {
     transform: scale(1.05)
   }
-  .productTitle{
+  .saleTitle{
     color: #5f3c23 !important;
   }
-  .editButton{
-    background-color: #5f3c23 !important;
-    color: white !important;
+  .red-text {
+    color: red !important;
+  }
+  
+  .green-text {
+    color: green !important;
+  }
+  
+  .blue-text {
+    color: blue !important;
   }

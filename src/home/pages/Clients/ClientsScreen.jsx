@@ -138,7 +138,7 @@ export const ClientsScreen = () => {
   return (
     <>
       <div className='text-center p-5'>
-        <h1 className='mb-5 title'><b>Listado de Clientes</b></h1>
+        <h1 className='mb-5 title clientTitle'><b>Listado de Clientes</b></h1>
         <div className='row d-md-flex'>
         <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
             <InputGroup>
@@ -156,7 +156,7 @@ export const ClientsScreen = () => {
           </div>
           <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
             <Form.Group className='d-flex' controlId="searchOptionForm">
-              <Form.Label className='w-50' column sm={2}><b className='homeText'>Buscar por:</b></Form.Label>
+              <Form.Label className='w-50' column sm={2}><b className='homeText clientTitle'>Buscar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={searchOption} onChange={handleSearchOptionChange}>
                 <option value="name">Apellido/ nombre</option>
                 <option value="id">ID</option>
@@ -166,7 +166,7 @@ export const ClientsScreen = () => {
           </div>
           <div className='col-12 col-xl-3 my-2 my-md-0'>
             <Form.Group className='d-flex' controlId="orderOptionForm">
-              <Form.Label className='w-50' column sm={2}><b className='homeText'>Ordenar por:</b></Form.Label>
+              <Form.Label className='w-50' column sm={2}><b className='homeText clientTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
                 <option value="Apellido ↑">Apellido ↑</option>
                 <option value="Apellido ↓">Apellido ↓</option>
@@ -184,28 +184,28 @@ export const ClientsScreen = () => {
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className='homeText text-center'>ID</th>
-                <th className='homeText text-center'>Nombre</th>
-                <th className='homeText text-center'>Teléfono</th>
-                <th className='homeText text-center'>Dirección</th>
-                <th className='homeText text-center'>Categoría</th>
-                <th className='homeText text-center'>Estado de pago</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>ID</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Nombre</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Teléfono</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Dirección</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Categoría</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Estado de pago</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {filteredClients.slice().sort(compareClients).map((client) => (
                 <tr key={client._id}>
-                  <td className="text-center">{client._id}</td>
-                  <td className="text-center">{client.lastName}, {client.firstName}</td>
-                  <td className="text-center">{client.phone}</td>
-                  <td className="text-center">{client.address}</td>
-                  <td className="text-center">{client.category}</td>
-                  <td className="text-center" style={{ color: client.isPaymentUpToDate ? 'green' : 'red' }}>
+                  <td className="text-center align-middle">{client._id}</td>
+                  <td className="text-center align-middle">{client.lastName}, {client.firstName}</td>
+                  <td className="text-center align-middle">{client.phone}</td>
+                  <td className="text-center align-middle">{client.address}</td>
+                  <td className="text-center align-middle">{client.category}</td>
+                  <td className="text-center align-middle" style={{ color: client.isPaymentUpToDate ? 'green' : 'red' }}>
                     {client.isPaymentUpToDate ? 'Al día' : 'Pendiente'}
                   </td>
-                  <td className="text-center">
-                    <Button className='m-1' onClick={() => handleShowEditClientModal(client)} variant="secondary">
+                  <td className="text-center align-middle">
+                    <Button className='m-1 editButton' onClick={() => handleShowEditClientModal(client)} variant="secondary">
                       <span className="d-flex align-items-center justify-content-center">
                         <FaEdit />
                       </span>
