@@ -149,17 +149,54 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
           })
         );
       });
-
+  
       // Wait for all promises to resolve
       const responses = await Promise.all(salesPromises);
-
+  
       // Check the responses for errors
       const isError = responses.some(response => response.status !== 201);
-
+  
       if (isError) {
         // Handle errors as needed
         setShowErrorAddSaleToast(true);
       } else {
+        // Update product stock for each sale
+        additionalProductFields.forEach((productField) => {
+          const productId = data[`product${productField.id}`];
+          const amount = data[`amount${productField.id}`];
+          const amountDescription = data[`amountDescription${productField.id}`];
+          
+          axios.get(`/products/${productId}`, {
+            headers: {
+              "access-token": store.token
+            }
+          })
+          .then((response) => {
+            const product = response.data;
+            let newStock = product.stock - amount;
+  
+            if (amountDescription === 'docena') {
+              newStock = product.stock - (amount * 12);
+            }
+  
+            // Update the product's stock
+            axios.patch(`/products/${productId}/stock`, { stock: newStock }, {
+              headers: {
+                "access-token": store.token
+              }
+            })
+            .then(() => {
+              console.log(`Stock updated for product ${productId}`);
+            })
+            .catch((error) => {
+              console.error(`Error updating stock for product ${productId}: ${error}`);
+            });
+          })
+          .catch((error) => {
+            console.error(`Error fetching product ${productId}: ${error}`);
+          });
+        });
+  
         setShowConfirmationAddSaleToast(true);
         reset();
         onHide();
@@ -170,6 +207,8 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
       setShowErrorAddSaleToast(true);
     }
   };
+  
+  
 
   // MODIFICAR TIPO DE VENTA AL SELECCIONAR UN CLIENTE
   const handleClientChange = (event) => {

@@ -11,7 +11,7 @@ import InputGroup from "react-bootstrap/InputGroup"
 import { BsSearch } from "react-icons/bs"
 import "./OrdersScreen.css"
 import { AddOrder } from './AddOrder'
-import { DeleteSale } from '../sales/DeleteSale'
+import { DeleteOrder } from './DeleteOrder'
 import { FinishOrder } from './FinichOrder'
 // import { EditSale } from './EditSale'
 export const OrdersScreen = () => {
@@ -187,7 +187,7 @@ export const OrdersScreen = () => {
     return (
         <>
             <div className='text-center p-5'>
-                <h1 className='mb-5 title clientTitle'><b>Pedidos</b></h1>
+                <h1 className='mb-5 title clientTitle'><b>Pedidos en Curso</b></h1>
                 <div className='row d-md-flex'>
                     <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
                         <InputGroup>
@@ -286,7 +286,7 @@ export const OrdersScreen = () => {
                 </div>
             </div>
             <AddOrder show={showAddOrderModal} onHide={handleCloseAddOrderModal} fetchSales={fetchSales} />
-            <DeleteSale show={showDeleteSaleModal} onHide={handleCloseDeleteSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
+            <DeleteOrder show={showDeleteSaleModal} onHide={handleCloseDeleteSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} products={products} />
             <FinishOrder show={showFinishOrderModal} onHide={handleCloseFinishOrderModal} fetchSales={fetchSales} selectedSale={selectedSale} />
         </>
     )
