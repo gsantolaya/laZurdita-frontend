@@ -2,28 +2,28 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { FaTrashAlt } from 'react-icons/fa';
-import { Modal, Toast, Form, Button, } from 'react-bootstrap';
+import { Modal, Toast, Form, Button } from 'react-bootstrap';
 import { TokenStorage } from '../../../utils/TokenStorage';
 import { tokenIsValid } from '../../../utils/TokenIsValid';
 import './SalesScreen.css';
 
-
 export const AddSale = ({ show, onHide, fetchSales }) => {
-
   const { handleSubmit, register, reset, formState: { errors }, setValue, watch } = useForm();
-  const [showConfirmationAddSaleToast, setShowConfirmationAddSaleToast] = useState(false)
-  const [showErrorAddSaleToast, setShowErrorAddSaleToast] = useState(false)
-  const [clients, setClients] = useState([])
-  const [products, setProducts] = useState([])
-  const store = TokenStorage()
-  const [additionalProductFields, setAdditionalProductFields] = useState([])
-  const decodedToken = tokenIsValid()
-  const userId = `${decodedToken.id}`
+  const [showConfirmationAddSaleToast, setShowConfirmationAddSaleToast] = useState(false);
+  const [showErrorAddSaleToast, setShowErrorAddSaleToast] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [products, setProducts] = useState([]);
+  const store = TokenStorage();
+  const [additionalProductFields, setAdditionalProductFields] = useState([]);
+  const [nextId, setNextId] = useState(1);
+  const decodedToken = tokenIsValid();
+  const userId = `${decodedToken.id}`;
   const [currentDate, setCurrentDate] = useState('');
   const [subtotals, setSubtotals] = useState([]);
   const [total, setTotal] = useState(0);
+  const [productFieldsData, setProductFieldsData] = useState({});
 
-  //MANEJO LA FECHA
+  // MANEJO LA FECHA
   const getCurrentDateInArgentina = () => {
     const now = new Date();
     // Ajusta la fecha al huso horario de Argentina (GMT-3)
@@ -32,7 +32,6 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
     const formattedDate = now.toISOString().split('T')[0];
     setCurrentDate(formattedDate);
   };
-
 
   // Effect to get current date
   useEffect(() => {
@@ -56,63 +55,92 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
         }
       })
         .then((response) => {
-          setClients(response.data)
+          setClients(response.data);
         })
         .catch((error) => {
-          console.error(error)
-        })
+          console.error(error);
+        });
       axios.get('/products', {
         headers: {
           "access-token": store.token
         }
       })
         .then((response) => {
-          setProducts(response.data)
+          setProducts(response.data);
         })
         .catch((error) => {
-          console.error(error)
-        })
+          console.error(error);
+        });
     }
-  }, [store.tokenValid, store.token])
+  }, [store.tokenValid, store.token]);
 
   const handleConfirmationAddSaleToastClose = () => {
-    setShowConfirmationAddSaleToast(false)
-  }
-  const handleErrorAddSaleToastClose = () => {
-    setShowErrorAddSaleToast(false)
-  }
-  const handleAddProductField = () => {
-    setAdditionalProductFields([...additionalProductFields, { type: "unidad" }])
-  }
-  const handleRemoveProductField = (index) => {
-    const updatedFields = [...additionalProductFields]
-    updatedFields.splice(index, 1)
-    setAdditionalProductFields(updatedFields)
-  }
+    setShowConfirmationAddSaleToast(false);
+  };
 
-  //GUARDAR VENTA EN LA BASE DE DATOS
+  const handleErrorAddSaleToastClose = () => {
+    setShowErrorAddSaleToast(false);
+  };
+
+  const handleAddProductField = () => {
+    const newId = nextId;
+    setAdditionalProductFields([...additionalProductFields, { id: newId, type: "unidad" }]);
+  
+    // Añadir un nuevo subtotal inicializado en 0
+    setSubtotals(prevSubtotals => [...prevSubtotals, 0]);
+  
+    // Crea un objeto vacío para los valores del nuevo campo
+    setProductFieldsData(prevData => ({
+      ...prevData,
+      [newId]: {},
+    }));
+  
+    setNextId(newId + 1);
+  };
+
+  const handleRemoveProductField = (id) => {
+    const updatedFields = additionalProductFields.filter((field) => field.id !== id);
+    setAdditionalProductFields(updatedFields);
+    
+    // Establecer el valor correspondiente en el estado de subtotals a 0 en lugar de eliminarlo
+    setSubtotals((prevSubtotals) => {
+      const updatedSubtotals = [...prevSubtotals];
+      updatedSubtotals[id] = 0;
+      return updatedSubtotals;
+    });
+  
+    // Eliminar los valores correspondientes al campo eliminado en el objeto de datos de producto
+    setProductFieldsData((prevData) => {
+      const updatedData = { ...prevData };
+      delete updatedData[id];
+      return updatedData;
+    });
+  }
+  
+
+  // GUARDAR VENTA EN LA BASE DE DATOS
   const handleAddSaleFormSubmit = async (data) => {
-    console.log(data)
+    console.log(data);
     if (additionalProductFields.length === 0) {
-      alert("Debes agregar al menos un producto.")
-      return
+      alert("Debes agregar al menos un producto.");
+      return;
     }
     try {
       // Initialize an array to store the promises for individual sales
-      const salesPromises = []
+      const salesPromises = [];
       additionalProductFields.forEach((productField, index) => {
         const saleToCreate = {
           date: data.date,
           user: userId,
           client: data.client,
           type: data.type,
-          product: data[`product${index}`],
-          amount: data[`amount${index}`],
-          amountDescription: data[`amountDescription${index}`],
-          productStatus: data[`productStatus${index}`],
-          unitPrice: data[`unitPrice${index}`],
-        }
-        console.log("Sale to create:", saleToCreate)
+          product: data[`product${productField.id}`],
+          amount: data[`amount${productField.id}`],
+          amountDescription: data[`amountDescription${productField.id}`],
+          productStatus: data[`productStatus${productField.id}`],
+          unitPrice: data[`unitPrice${productField.id}`],
+        };
+        console.log("Sale to create:", saleToCreate);
         // Push each promise to the array
         salesPromises.push(
           axios.post('/sales/', saleToCreate, {
@@ -120,32 +148,31 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
               "access-token": store.token
             }
           })
-        )
-      })
+        );
+      });
 
       // Wait for all promises to resolve
-      const responses = await Promise.all(salesPromises)
+      const responses = await Promise.all(salesPromises);
 
       // Check the responses for errors
-      const isError = responses.some(response => response.status !== 201)
+      const isError = responses.some(response => response.status !== 201);
 
       if (isError) {
         // Handle errors as needed
-        setShowErrorAddSaleToast(true)
+        setShowErrorAddSaleToast(true);
       } else {
-        setShowConfirmationAddSaleToast(true)
-        reset()
-        onHide()
-        fetchSales()
+        setShowConfirmationAddSaleToast(true);
+        reset();
+        onHide();
+        fetchSales();
       }
     } catch (error) {
-      console.error(error)
-      setShowErrorAddSaleToast(true)
+      console.error(error);
+      setShowErrorAddSaleToast(true);
     }
-  }
+  };
 
-
-  //MODIFICAR TIPO DE VENTA AL SELECCIONAR UN CLIENTE
+  // MODIFICAR TIPO DE VENTA AL SELECCIONAR UN CLIENTE
   const handleClientChange = (event) => {
     const selectedClientId = event.target.value;
     const selectedClient = clients.find((client) => client._id === selectedClientId);
@@ -160,13 +187,11 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
     } else {
       // Manejar el caso donde selectedClient es undefined, por ejemplo, limpiar valores o mostrar un mensaje de error.
     }
-  }
+  };
 
   const typeValue = watch("type");
 
-  //MOSTRAR O NO DESCRIPCION DE CANTIDAD:
-
-  //AGREGAR AUTOMATICAMENTE EL PRECIO
+  // MOSTRAR O NO DESCRIPCION DE CANTIDAD:
 
   return (
     <>
@@ -178,6 +203,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className='modalBody'>
+
           <Form className='d-flex flex-wrap justify-content-center' onSubmit={handleSubmit(handleAddSaleFormSubmit)}>
             <div className='col-12 row my-2'>
               <h6>Fecha/ Cliente:</h6>
@@ -186,13 +212,13 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
                 <Form.Control
                   type="date"
                   name="date"
-                  value={currentDate} // Asigna la fecha actual de Argentina
-                  onChange={(e) => setCurrentDate(e.target.value)} // Actualiza la fecha si el usuario la cambia
+                  value={currentDate}
+                  onChange={(e) => setCurrentDate(e.target.value)}
                   {...register("date", { required: true })}
-                  max={currentDate} // Establece el valor máximo al valor actual
+                  max={currentDate}
                 />
               </Form.Group>
-              <Form.Group className="formFields my-2 px-2 col-10 col-md-4" controlId="formBasicClient" >
+              <Form.Group className="formFields my-2 px-2 col-10 col-md-4" controlId="formBasicClient">
                 <Form.Label>Cliente:</Form.Label>
                 <Form.Select as="select" name="client" {...register("client", { required: true })} onChange={handleClientChange}>
                   <option value="">Selecciona un cliente</option>
@@ -212,16 +238,25 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
                 </Form.Select>
               </Form.Group>
             </div>
+
             <div className='col-12 row my-2'>
               <h6>Productos:</h6>
-              {additionalProductFields.map((_, index) => (
-                <div key={index} className='col-12 row my-2 align-items-center justify-content-between'>
-                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicDescription${index}`}>
+              {additionalProductFields.map((field, index) => (
+                <div key={field.id} className='col-12 row my-2 align-items-center justify-content-between'>
+                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicDescription${field.id}`}>
                     <Form.Label>Variedad:</Form.Label>
                     <Form.Select
                       as="select"
-                      name={`product${index}`}
-                      {...register(`product${index}`, { required: true })}
+                      name={`product${field.id}`}
+                      {...register(`product${field.id}`, { required: true })}
+                      value={productFieldsData[field.id]?.product || ''}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setProductFieldsData((prevData) => ({
+                          ...prevData,
+                          [field.id]: { ...prevData[field.id], product: newValue },
+                        }));
+                      }}
                     >
                       <option value="">Selecciona un producto</option>
                       {products.map((product) => (
@@ -231,78 +266,85 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
                       ))}
                     </Form.Select>
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-1" controlId="formBasicAmount">
+
+                  <Form.Group className="formFields my-2 px-2 col-1" controlId={`formBasicAmount${field.id}`}>
                     <Form.Label>Cantidad</Form.Label>
                     <Form.Control
                       type="number"
                       maxLength={5}
-                      name={`amount${index}`}
+                      name={`amount${field.id}`}
                       placeholder="000"
-                      {...register(`amount${index}`, {
+                      {...register(`amount${field.id}`, {
                         required: true,
                         validate: (value) => parseFloat(value) >= 0,
                       })}
                       onChange={(e) => {
-                        // Calcula el subtotal y actualiza el estado subtotals
                         const amount = parseFloat(e.target.value);
-                        const unitPrice = parseFloat(watch(`unitPrice${index}`));
+                        const unitPrice = parseFloat(watch(`unitPrice${field.id}`));
                         const subtotal = isNaN(amount) || isNaN(unitPrice) ? 0 : amount * unitPrice;
 
                         const updatedSubtotals = [...subtotals];
-                        updatedSubtotals[index] = subtotal;
+                        updatedSubtotals[field.id] = subtotal;
                         setSubtotals(updatedSubtotals);
                       }}
                     />
-                    {errors[`amount${index}`]?.type === 'required' && (
+                    {errors[`amount${field.id}`]?.type === 'required' && (
                       <span className="authSpan">Este campo es requerido</span>
                     )}
-                    {errors[`amount${index}`]?.type === 'validate' && (
+                    {errors[`amount${field.id}`]?.type === 'validate' && (
                       <span className="authSpan">Debe ser un número positivo</span>
                     )}
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-3" controlId="formBasicAmountDescription">
+
+                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicAmountDescription${field.id}`}>
                     <Form.Label>Descripción Cantidad:</Form.Label>
                     <Form.Select
                       as="select"
-                      name={`amountDescription${index}`}
-                      {...register(`amountDescription${index}`, {
+                      name={`amountDescription${field.id}`}
+                      {...register(`amountDescription${field.id}`, {
                         required: true,
-                        disabled: typeValue === 'mayorista', // Deshabilita si el tipo de venta es 'mayorista'
+                        disabled: typeValue === 'mayorista',
                       })}
                     >
                       <option value="docena">Docena</option>
                       <option value="unidad" disabled={typeValue === 'mayorista'}>Unidad</option>
                     </Form.Select>
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-2" controlId="formBasicStatus">
+
+                  <Form.Group className="formFields my-2 px-2 col-2" controlId={`formBasicStatus${field.id}`}>
                     <Form.Label>Descripción Adicional:</Form.Label>
-                    <Form.Select as="select" name={`productStatus${index}`} {...register(`productStatus${index}`, { required: true })}>
+                    <Form.Select as="select" name={`productStatus${field.id}`} {...register(`productStatus${field.id}`, { required: true })}>
                       <option value="">Seleccione una opción</option>
                       <option value="horneadas">Horneadas</option>
                       <option value="congeladas">Congeladas</option>
                     </Form.Select>
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-2" controlId="formBasicPayment">
+
+                  <Form.Group className="formFields my-2 px-2 col-2" controlId={`formBasicPayment${field.id}`}>
                     <Form.Label>Precio unitario</Form.Label>
-                    <Form.Control type="number" name={`unitPrice${index}`} placeholder="Precio por unidad"
-                      {...register(`unitPrice${index}`, { required: true })}
+                    <Form.Control
+                      type="number"
+                      name={`unitPrice${field.id}`}
+                      placeholder="Precio por unidad"
+                      {...register(`unitPrice${field.id}`, { required: true })}
                       onChange={(e) => {
-                        // Calcula el subtotal y actualiza el estado subtotals
                         const unitPrice = parseFloat(e.target.value);
-                        const amount = parseFloat(watch(`amount${index}`));
+                        const amount = parseFloat(watch(`amount${field.id}`));
                         const subtotal = isNaN(amount) || isNaN(unitPrice) ? 0 : amount * unitPrice;
 
                         const updatedSubtotals = [...subtotals];
-                        updatedSubtotals[index] = subtotal;
+                        updatedSubtotals[field.id] = subtotal;
                         setSubtotals(updatedSubtotals);
                       }}
                     />
                     {errors?.unitPrice && (<span className="authSpan">Este campo es requerido</span>)}
                   </Form.Group>
-                  <Button className='buttonsFormAddSale my-2 col-1' variant="danger" type="button" onClick={() => handleRemoveProductField(index)} style={{ width: '40px', height: '40px' }}>
+
+                  <Button className='buttonsFormAddSale my-2 col-1' variant="danger" type="button" onClick={() => handleRemoveProductField(field.id)} style={{ width: '40px', height: '40px' }}>
                     <FaTrashAlt />
                   </Button>
-                  <h6>Subtotal: ${subtotals[index]}</h6>
+
+                  <h6>Subtotal: ${subtotals[field.id]}</h6>
                 </div>
               ))}
 
@@ -311,6 +353,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
               </Button>
             </div>
             <h4>Total: ${total}</h4>
+
             <Modal.Footer className="mt-3 col-12">
               <Button className='buttonsFormAddSale m-2 w-100' variant="secondary" type="submit">
                 Agregar Venta
@@ -320,10 +363,11 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
               </Button>
             </Modal.Footer>
           </Form>
+
         </Modal.Body>
       </Modal>
 
-      {/* TOASTS*/}
+      {/* TOASTS */}
       <Toast show={showConfirmationAddSaleToast} onClose={handleConfirmationAddSaleToastClose} className="toastConfirmation" delay={5000} autohide>
         <Toast.Header className="toastConfirmationHeader">
           <strong className="me-auto">Registro Exitoso</strong>
@@ -337,5 +381,5 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
         <Toast.Body>Hubo un error al registrar la venta. Por favor, inténtalo nuevamente.</Toast.Body>
       </Toast>
     </>
-  )
-}
+  );
+};
