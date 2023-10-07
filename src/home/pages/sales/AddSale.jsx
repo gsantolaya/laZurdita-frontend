@@ -85,30 +85,30 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
   const handleAddProductField = () => {
     const newId = nextId;
     setAdditionalProductFields([...additionalProductFields, { id: newId, type: "unidad" }]);
-  
+
     // Añadir un nuevo subtotal inicializado en 0
     setSubtotals(prevSubtotals => [...prevSubtotals, 0]);
-  
+
     // Crea un objeto vacío para los valores del nuevo campo
     setProductFieldsData(prevData => ({
       ...prevData,
       [newId]: {},
     }));
-  
+
     setNextId(newId + 1);
   };
 
   const handleRemoveProductField = (id) => {
     const updatedFields = additionalProductFields.filter((field) => field.id !== id);
     setAdditionalProductFields(updatedFields);
-    
+
     // Establecer el valor correspondiente en el estado de subtotals a 0 en lugar de eliminarlo
     setSubtotals((prevSubtotals) => {
       const updatedSubtotals = [...prevSubtotals];
       updatedSubtotals[id] = 0;
       return updatedSubtotals;
     });
-  
+
     // Eliminar los valores correspondientes al campo eliminado en el objeto de datos de producto
     setProductFieldsData((prevData) => {
       const updatedData = { ...prevData };
@@ -116,7 +116,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
       return updatedData;
     });
   }
-  
+
 
   // GUARDAR VENTA EN LA BASE DE DATOS
   const handleAddSaleFormSubmit = async (data) => {
@@ -191,6 +191,44 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
 
   const typeValue = watch("type");
 
+  const handleProductChange = (event, fieldId) => {
+    const productId = event.target.value;
+
+    // Buscar el producto seleccionado en el estado 'products'
+    const selectedProduct = products.find((product) => product._id === productId);
+
+    if (selectedProduct) {
+      // Obtener el precio unitario del producto seleccionado basado en 'typeValue'
+      const unitPrice = typeValue === 'mayorista' ? selectedProduct.wholesalePrice : selectedProduct.retailPrice;
+
+      // Actualizar el precio unitario en el campo correspondiente
+      setValue(`unitPrice${fieldId}`, unitPrice);
+    } else {
+      // Manejar el caso donde el producto seleccionado no se encuentra, por ejemplo, limpiar el campo de precio unitario.
+      setValue(`unitPrice${fieldId}`, ''); // Esto limpia el campo de precio unitario si el producto no se encuentra
+    }
+  };
+
+  const handleAmountDescriptionChange = (event, fieldId) => {
+    const selectedAmountDescription = event.target.value;
+  
+    if (selectedAmountDescription === 'unidad') {
+      // Obtener el producto seleccionado en este campo
+      const selectedProductId = watch(`product${fieldId}`);
+      const selectedProduct = products.find((product) => product._id === selectedProductId);
+  
+      if (selectedProduct) {
+        // Obtener el precio unitario del producto y establecerlo en el campo 'unitPrice'
+        setValue(`unitPrice${fieldId}`, selectedProduct.unitPrice);
+      }
+    } else {
+      // Manejar otros casos aquí, si es necesario
+      // Por ejemplo, puedes borrar el valor de 'unitPrice' si se selecciona "Docena".
+      setValue(`unitPrice${fieldId}`, ''); // Esto limpia el campo de 'unitPrice' si no es "Unidad".
+    }
+  };
+  
+
   // MOSTRAR O NO DESCRIPCION DE CANTIDAD:
 
   return (
@@ -206,7 +244,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
 
           <Form className='d-flex flex-wrap justify-content-center' onSubmit={handleSubmit(handleAddSaleFormSubmit)}>
             <div className='col-12 row my-2'>
-              <h6>Fecha/ Cliente:</h6>
+              <h6>Información General:</h6>
               <Form.Group className="formFields my-2 px-2 col-10 col-md-4" controlId="formBasicDate">
                 <Form.Label>Fecha:</Form.Label>
                 <Form.Control
@@ -243,7 +281,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
               <h6>Productos:</h6>
               {additionalProductFields.map((field, index) => (
                 <div key={field.id} className='col-12 row my-2 align-items-center justify-content-between'>
-                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicDescription${field.id}`}>
+                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicDescription${field.id}`} onChange={handleProductChange}>
                     <Form.Label>Variedad:</Form.Label>
                     <Form.Select
                       as="select"
@@ -256,6 +294,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
                           ...prevData,
                           [field.id]: { ...prevData[field.id], product: newValue },
                         }));
+                        handleProductChange(e, field.id); // Llama a handleProductChange cuando cambia la variedad
                       }}
                     >
                       <option value="">Selecciona un producto</option>
@@ -305,6 +344,7 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
                         required: true,
                         disabled: typeValue === 'mayorista',
                       })}
+                      onChange={(e) => handleAmountDescriptionChange(e, field.id)}
                     >
                       <option value="docena">Docena</option>
                       <option value="unidad" disabled={typeValue === 'mayorista'}>Unidad</option>
