@@ -116,7 +116,7 @@ export const ProductsScreen = () => {
   return (
     <>
       <div className='text-center p-5'>
-        <h1 className='mb-5 productTitle'><b>Listado de Empanadas</b></h1>
+        <h1 className='mb-5 productTitle'><b>Nuestras Empanadas</b></h1>
         <div className='row d-md-flex'>
           <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
             <InputGroup>

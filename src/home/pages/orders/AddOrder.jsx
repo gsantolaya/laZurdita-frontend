@@ -5,9 +5,8 @@ import { FaTrashAlt } from 'react-icons/fa';
 import { Modal, Toast, Form, Button } from 'react-bootstrap';
 import { TokenStorage } from '../../../utils/TokenStorage';
 import { tokenIsValid } from '../../../utils/TokenIsValid';
-import './SalesScreen.css';
 
-export const AddSale = ({ show, onHide, fetchSales }) => {
+export const AddOrder = ({ show, onHide, fetchSales }) => {
   const { handleSubmit, register, reset, formState: { errors }, setValue, watch } = useForm();
   const [showConfirmationAddSaleToast, setShowConfirmationAddSaleToast] = useState(false);
   const [showErrorAddSaleToast, setShowErrorAddSaleToast] = useState(false);

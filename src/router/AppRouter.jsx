@@ -8,7 +8,7 @@ import { ClientsScreen } from '../home/pages/clients/ClientsScreen';
 import { SalesScreen } from '../home/pages/sales/SalesScreen';
 import { ExpensesScreen } from '../home/pages/expenses/ExpensesScreen';
 import { ArqueoScreen } from '../home/pages/arqueo/ArqueoScreen';
-import { ComandasScreen } from '../home/pages/comandas/ComandasScreen';
+import { OrdersScreen } from '../home/pages/orders/OrdersScreen';
 import { UsersScreen } from '../home/pages/UsersScreen';
 import { NavbarMenu } from '../home/components/NavbarMenu';
 import { Error404Screen } from '../Error404Screen';
@@ -43,7 +43,7 @@ const AppContent = () => {
           <Route path="/home/sales" element={<SalesScreen />} />
           <Route path="/home/expenses" element={<ExpensesScreen />} />
           <Route path="/home/arqueo" element={<ArqueoScreen />} />
-          <Route path="/home/comandas" element={<ComandasScreen />} />
+          <Route path="/home/orders" element={<OrdersScreen />} />
           <Route path="/home/users" element={<UsersScreen />} />
         </Route>
         <Route path="/error404" element={<Error404Screen />} />

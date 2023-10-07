@@ -28,8 +28,8 @@ export function SideMenu() {
       <Nav.Link className={`sideMenuLinks ${isActive('/home/arqueo')}`} href="/home/arqueo">
         Arqueo
       </Nav.Link>
-      <Nav.Link className={`sideMenuLinks ${isActive('/home/comandas')}`} href="/home/comandas">
-        Comandas
+      <Nav.Link className={`sideMenuLinks ${isActive('/home/orders')}`} href="/home/orders">
+        Pedidos
       </Nav.Link>
       <Nav.Link className="log" href="/" onClick={handleLogout}>
         Cerrar Sesión

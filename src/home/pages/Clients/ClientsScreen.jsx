@@ -20,7 +20,9 @@ export const ClientsScreen = () => {
 
   //DECLARACION DE CONSTANTES
   const [clients, setClients] = useState([])
+
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchOption, setSearchOption] = useState('name')
   const [orderOption, setOrderOption] = useState('name')
 
   const [showAddClientModal, setShowAddClientModal] = useState(false)
@@ -31,7 +33,6 @@ export const ClientsScreen = () => {
   const [showEditClientModal, setShowEditClientModal] = useState(false)
   const [selectedClient, setSelectedClient] = useState(null)
 
-  const [searchOption, setSearchOption] = useState('name')
   const store = TokenStorage()
   const navigate = useNavigate()
 
@@ -75,7 +76,7 @@ export const ClientsScreen = () => {
   const handleCloseEditClientModal = () => {
     setShowEditClientModal(false)
   }
-  
+
   //MANEJO PARA BUSQUEDA Y FILTRO
   const handleSearchInputChange = (event) => {
     setSearchTerm(event.target.value)
@@ -138,9 +139,9 @@ export const ClientsScreen = () => {
   return (
     <>
       <div className='text-center p-5'>
-        <h1 className='mb-5 title clientTitle'><b>Listado de Clientes</b></h1>
+        <h1 className='mb-5 title clientTitle'><b>Nuestros Clientes</b></h1>
         <div className='row d-md-flex'>
-        <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
+          <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
             <InputGroup>
               <InputGroup.Text id="btnGroupAddon">
                 <BsSearch />
@@ -223,8 +224,8 @@ export const ClientsScreen = () => {
         </div>
       </div>
       <AddClient show={showAddClientModal} onHide={handleCloseAddClientModal} fetchClients={fetchClients} />
-      <DeleteClient show={showDeleteClientModal} onHide={handleCloseDeleteClientModal} fetchClients={fetchClients} selectedClient={selectedClient}/>
-      <EditClient show={showEditClientModal} onHide={handleCloseEditClientModal} fetchClients={fetchClients} selectedClient={selectedClient}/>
+      <DeleteClient show={showDeleteClientModal} onHide={handleCloseDeleteClientModal} fetchClients={fetchClients} selectedClient={selectedClient} />
+      <EditClient show={showEditClientModal} onHide={handleCloseEditClientModal} fetchClients={fetchClients} selectedClient={selectedClient} />
     </>
   )
 }

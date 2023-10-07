@@ -5,7 +5,6 @@ import Table from 'react-bootstrap/Table'
 import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import Nav from 'react-bootstrap/Nav'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
@@ -116,13 +115,13 @@ export const SalesScreen = () => {
     setSearchTerm(event.target.value)
   }
 
-  //FUNCION PARA FILTRAR PRODUCTOS
+  //FUNCION PARA FILTRAR LAS VENTAS
   const filteredSales = sales.filter((sale) => {
     const saleDate = sale.date.toLowerCase()
-    return saleDate.includes(searchTerm.toLowerCase())
+    return saleDate.includes(searchTerm.toLowerCase()) && sale.status === 'completed'
   })
 
-  //FUNCION PARA ORDENAR LOS PRODUCTOS POR VARIEDAD O STOCK
+  //FUNCION PARA ORDENAR LAS VENTAS
   function compareSales(a, b) {
     if (orderOption === 'Variedad ↓') {
       return a.type.localeCompare(b.type)
@@ -161,7 +160,7 @@ export const SalesScreen = () => {
   return (
     <>
       <div className='text-center p-5'>
-        <h1 className='mb-5 saleTitle'><b>Listado de Ventas</b></h1>
+        <h1 className='mb-5 saleTitle'><b>Ventas Realizadas</b></h1>
         <div className='row d-md-flex'>
           <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
             <InputGroup>
@@ -187,9 +186,6 @@ export const SalesScreen = () => {
                 <option value="Stock ↑">Stock ↑</option>
               </Form.Select>
             </Form.Group>
-          </div>
-          <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
-            <Nav.Link className="buttonAddSale" onClick={() => setShowAddSaleModal(true)}>Nueva Venta</Nav.Link>
           </div>
         </div>
 
@@ -223,8 +219,9 @@ export const SalesScreen = () => {
                   <tr key={sale._id}>
                     {/* <td className="text-center align-middle">{sale._id}</td> */}
                     <td className="text-center align-middle">{formatDate(sale.date)}</td>
-                    <td className="text-center align-middle">{user.lastName}, {user.firstName}</td>
-
+                    <td className="text-center align-middle">
+                      {user ? `${user.lastName}, ${user.firstName}` : ''}
+                    </td>
                     <td className="text-center align-middle">
                       {client ? `${client.lastName}, ${client.firstName}` : ''}
                     </td>
