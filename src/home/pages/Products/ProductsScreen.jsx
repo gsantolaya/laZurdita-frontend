@@ -9,7 +9,7 @@ import Nav from 'react-bootstrap/Nav'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
-import { BsSearch } from "react-icons/bs"
+import { BsSearch, BsPrinterFill } from "react-icons/bs"
 import "./ProductsScreen.css"
 import { AddProduct } from './AddProduct'
 import { DeleteProduct } from './DeleteProduct'
@@ -30,7 +30,7 @@ export const ProductsScreen = () => {
 
   const [showEditProductModal, setShowEditProductModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
-  
+
   const store = TokenStorage()
   const navigate = useNavigate()
 
@@ -72,7 +72,7 @@ export const ProductsScreen = () => {
   const handleCloseEditProductModal = () => {
     setShowEditProductModal(false)
   }
-  
+
   const handleOrderOptionChange = (event) => {
     setOrderOption(event.target.value)
   }
@@ -113,6 +113,42 @@ export const ProductsScreen = () => {
     }
   }
 
+  //FUNCION PARA IMPRIMIR LA TABLA
+  const handlePrintTable = () => {
+    const printWindow = window.open('', '', 'width=800,height=600')
+
+    printWindow.document.write('<html><head><title>Tabla de Productos</title></head><body>')
+    printWindow.document.write('<h1>Nuestras Empanadas</h1>')
+    printWindow.document.write('<table border="1">')
+    printWindow.document.write('<thead><tr>')
+    printWindow.document.write('<th>ID</th>')
+    printWindow.document.write('<th>Variedad</th>')
+    printWindow.document.write('<th>Precio por unidad</th>')
+    printWindow.document.write('<th>Precio Minorista</th>')
+    printWindow.document.write('<th>Precio Mayorista</th>')
+    printWindow.document.write('<th>Stock</th>')
+    printWindow.document.write('</tr></thead><tbody>')
+
+    // Agrega los datos de los productos a la tabla de la ventana de impresión
+    filteredProducts.slice().sort(compareProducts).forEach((product) => {
+      printWindow.document.write('<tr>')
+      printWindow.document.write(`<td>${product._id}</td>`)
+      printWindow.document.write(`<td>${product.type}</td>`)
+      printWindow.document.write(`<td>${product.unitPrice}</td>`)
+      printWindow.document.write(`<td>${product.retailPrice}</td>`)
+      printWindow.document.write(`<td>${product.wholesalePrice}</td>`)
+      printWindow.document.write(`<td>${product.stock}</td>`)
+      printWindow.document.write('</tr>')
+    })
+
+    printWindow.document.write('</tbody></table>')
+    printWindow.document.write('</body></html>')
+
+    printWindow.document.close()
+    printWindow.print()
+    printWindow.close()
+  }
+
   return (
     <>
       <div className='text-center p-5'>
@@ -142,6 +178,9 @@ export const ProductsScreen = () => {
                 <option value="Stock ↑">Stock ↑</option>
               </Form.Select>
             </Form.Group>
+          </div>
+          <div className='col-12 col-xl-3 my-2 my-md-0'>
+            <Button variant="secondary" onClick={handlePrintTable}>Imprimir tabla en pantalla <BsPrinterFill /></Button>
           </div>
           <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
             <Nav.Link className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Empanada</Nav.Link>
@@ -187,9 +226,10 @@ export const ProductsScreen = () => {
           </Table>
         </div>
       </div>
+
       <AddProduct show={showAddProductModal} onHide={handleCloseAddProductModal} fetchProducts={fetchProducts} />
-      <DeleteProduct show={showDeleteProductModal} onHide={handleCloseDeleteProductModal} fetchProducts={fetchProducts} selectedProduct={selectedProduct}/>
-      <EditProduct show={showEditProductModal} onHide={handleCloseEditProductModal} fetchProducts={fetchProducts} selectedProduct={selectedProduct}/>
+      <DeleteProduct show={showDeleteProductModal} onHide={handleCloseDeleteProductModal} fetchProducts={fetchProducts} selectedProduct={selectedProduct} />
+      <EditProduct show={showEditProductModal} onHide={handleCloseEditProductModal} fetchProducts={fetchProducts} selectedProduct={selectedProduct} />
     </>
   )
 }
