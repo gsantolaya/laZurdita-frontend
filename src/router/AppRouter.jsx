@@ -7,7 +7,6 @@ import { ProductsScreen } from '../home/pages/products/ProductsScreen';
 import { ClientsScreen } from '../home/pages/clients/ClientsScreen';
 import { SalesScreen } from '../home/pages/sales/SalesScreen';
 import { ExpensesScreen } from '../home/pages/expenses/ExpensesScreen';
-import { ArqueoScreen } from '../home/pages/arqueo/ArqueoScreen';
 import { OrdersScreen } from '../home/pages/orders/OrdersScreen';
 import { UsersScreen } from '../home/pages/UsersScreen';
 import { NavbarMenu } from '../home/components/NavbarMenu';
@@ -42,7 +41,6 @@ const AppContent = () => {
           <Route path="/home/clients" element={<ClientsScreen />} />
           <Route path="/home/sales" element={<SalesScreen />} />
           <Route path="/home/expenses" element={<ExpensesScreen />} />
-          <Route path="/home/arqueo" element={<ArqueoScreen />} />
           <Route path="/home/orders" element={<OrdersScreen />} />
           <Route path="/home/users" element={<UsersScreen />} />
         </Route>

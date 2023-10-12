@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer'
 import { useForm } from "react-hook-form"
 import Form from 'react-bootstrap/Form'
 import { TokenStorage } from "../../../utils/TokenStorage"
@@ -22,7 +23,7 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
     }
 
     // FUNCION PARA MODIFICAR UN PRODUCTO
-    const handleEditSaleFormSubmit = async (formData) => {
+    const handleFinishOrderFormSubmit = async (formData) => {
         try {
             const updatedSale = {
                 user: selectedSale.user,
@@ -36,6 +37,7 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
                 unitPrice: selectedSale.unitPrice,
                 wayToPay: formData.wayToPay,
                 payment: formData.payment,
+                tip: formData.tip || '',
                 status: "completed"
             }
 
@@ -67,7 +69,7 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
                 </Modal.Header>
                 <Modal.Body className='modalBody'>
 
-                    <Form className='d-flex flex-wrap justify-content-center' onSubmit={handleSubmit(handleEditSaleFormSubmit)}>
+                    <Form className='d-flex flex-wrap justify-content-center' onSubmit={handleSubmit(handleFinishOrderFormSubmit)}>
                         <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicWayToPay">
                             <Form.Label>Forma de pago:</Form.Label>
                             <Form.Select as="select" name="wayToPay" {...register("wayToPay", { required: true })}>
@@ -84,6 +86,12 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
                             />
                             {errors?.payment && (<span className="authSpan">Este campo es requerido</span>)}
                         </Form.Group>
+                        <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicPayment">
+                            <Form.Label>Propina:</Form.Label>
+                            <Form.Control type="number" maxLength={20} name="tip" placeholder="0000"
+                                {...register("tip", { required: false })}
+                            />
+                        </Form.Group>
                         <Modal.Footer className="mt-3 col-12">
                             <Button className='buttonsFormAddSale m-2 w-100' variant="secondary" type="submit">
                                 Guardar Cambios
@@ -97,19 +105,20 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
             </Modal>
 
             {/* TOASTS */}
-            <Toast show={showEditSaleConfirmationToast} onClose={handleEditSaleConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
-                <Toast.Header className="toastConfirmationHeader">
-                    <strong className="me-auto">Operación Exitosa</strong>
-                </Toast.Header>
-                <Toast.Body>El pedido se finalizadó correctamente.</Toast.Body>
-            </Toast>
-
-            <Toast show={showEditSaleErrorToast} onClose={handleEditSaleErrorToastClose} className="toastError" delay={5000} autohide>
-                <Toast.Header className="toastErrorHeader">
-                    <strong className="me-auto">Error</strong>
-                </Toast.Header>
-                <Toast.Body>Hubo un error al finalizar el pedido. Por favor, inténtalo nuevamente.</Toast.Body>
-            </Toast>
+            <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+                <Toast show={showEditSaleConfirmationToast} onClose={handleEditSaleConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
+                    <Toast.Header className="toastConfirmationHeader">
+                        <strong className="me-auto">Operación Exitosa</strong>
+                    </Toast.Header>
+                    <Toast.Body>El pedido se finalizadó correctamente.</Toast.Body>
+                </Toast>
+                <Toast show={showEditSaleErrorToast} onClose={handleEditSaleErrorToastClose} className="toastError" delay={5000} autohide>
+                    <Toast.Header className="toastErrorHeader">
+                        <strong className="me-auto">Error</strong>
+                    </Toast.Header>
+                    <Toast.Body>Hubo un error al finalizar el pedido. Por favor, inténtalo nuevamente.</Toast.Body>
+                </Toast>
+            </ToastContainer>
         </>
     )
 }

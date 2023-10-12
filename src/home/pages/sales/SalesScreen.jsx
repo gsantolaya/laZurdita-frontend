@@ -36,6 +36,27 @@ export const SalesScreen = () => {
   const store = TokenStorage()
   const navigate = useNavigate()
 
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  //Funcion para convertir fecha a la zona horaria local
+  function formatDate(dateString) {
+    const utcDate = new Date(dateString);
+    const year = utcDate.getUTCFullYear();
+    const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = utcDate.getUTCDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function formatTableDate(inputDate) {
+    const parts = inputDate.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
+    } else {
+      return inputDate; // Devuelve la fecha original si no está en el formato esperado
+    }
+  }
 
   useEffect(() => {
     if (store.tokenValid) {
@@ -117,9 +138,15 @@ export const SalesScreen = () => {
 
   //FUNCION PARA FILTRAR LAS VENTAS
   const filteredSales = sales.filter((sale) => {
-    const saleDate = sale.date.toLowerCase()
-    return saleDate.includes(searchTerm.toLowerCase()) && sale.status === 'completed'
-  })
+    const saleDate = sale.date.toLowerCase();
+    const saleStatus = sale.status === 'completed';
+
+    // Comprueba si la fecha está dentro del rango seleccionado
+    const isWithinDateRange = (!startDate || saleDate >= startDate) && (!endDate || saleDate <= endDate);
+
+    return isWithinDateRange && saleStatus;
+  });
+
 
   //FUNCION PARA ORDENAR LAS VENTAS
   function compareSales(a, b) {
@@ -148,21 +175,95 @@ export const SalesScreen = () => {
     }
   }
 
-  //Funcion para convertir fecha a la zona horaria local
-  function formatDate(dateString) {
-    const utcDate = new Date(dateString);
-    const day = utcDate.getUTCDate();
-    const month = utcDate.getUTCMonth() + 1;
-    const year = utcDate.getUTCFullYear();
-    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+
+
+  //CALCULANDO TOTALES:
+  // Función para calcular la cantidad de ventas por tipo de pago
+  function calculateCountByWayToPay(wayToPay) {
+    const count = filteredSales.filter(sale => sale.wayToPay === wayToPay).length;
+    return count === 0 ? 0 : count;
   }
+  // Función para calcular la suma de los valores de sale.payment por tipo de pago
+  function calculateSubtotalByWayToPay(wayToPay) {
+    const subtotal = filteredSales
+      .filter(sale => sale.wayToPay === wayToPay)
+      .reduce((total, sale) => total + sale.payment, 0);
+    return subtotal === 0 ? 0 : subtotal;
+  }
+  // Función para calcular el total de todos los valores sale.payment
+  function calculateSubtotal() {
+    return filteredSales.reduce((total, sale) => total + sale.payment, 0);
+  }
+
+  // Función para calcular la suma total de propinas
+  function calculateTotalTips() {
+    const totalTips = filteredSales.reduce((total, sale) => total + (sale.tip || 0), 0);
+    return totalTips;
+  }
+
+
+  //FILTRAR POR FECHAS 
+  useEffect(() => {
+    // Obtén la fecha actual
+    const currentDate = new Date();
+  
+    // Establece startDate como el día 15 del mes anterior
+    const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 15);
+    const currentDay = currentDate.getDate();
+  
+    // Verifica si el día actual es igual o posterior al 15 del mes actual
+    if (currentDay >= 15) {
+      startDate.setMonth(currentDate.getMonth());
+    }
+  
+    // Establece endDate como el día 14 del mes en curso o del mes siguiente
+    const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 14);
+  
+    // Verifica si el día actual es igual o posterior al 14 del mes actual
+    if (currentDay >= 14) {
+      endDate.setMonth(currentDate.getMonth() + 1);
+    }
+  
+    // Formatea las fechas en formato ISO (yyyy-MM-dd) para establecerlas en los campos de entrada
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+  
+    setStartDate(formattedStartDate);
+    setEndDate(formattedEndDate);
+  }, []);
+  
 
   return (
     <>
       <div className='text-center p-5'>
         <h1 className='mb-5 saleTitle'><b>Ventas Realizadas</b></h1>
         <div className='row d-md-flex'>
-          <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
+          <div className='col-2 my-2 my-md-0'>
+            <InputGroup>
+              <Form.Control
+                type="date"
+                placeholder="Fecha de inicio"
+                value={startDate}
+                onChange={(e) => {
+                  console.log('startDate:', e.target.value);
+                  setStartDate(formatDate(e.target.value));
+                }}
+              />
+            </InputGroup>
+          </div>
+          <div className='col-2 my-2 my-md-0'>
+            <InputGroup>
+              <Form.Control
+                type="date"
+                placeholder="Fecha de finalización"
+                value={endDate}
+                onChange={(e) => {
+                  console.log('endDate:', e.target.value);
+                  setEndDate(formatDate(e.target.value));
+                }} />
+            </InputGroup>
+          </div>
+          <div className='col-3 my-2 my-md-0'>
             <InputGroup>
               <InputGroup.Text id="btnGroupAddon">
                 <BsSearch />
@@ -176,7 +277,7 @@ export const SalesScreen = () => {
               />
             </InputGroup>
           </div>
-          <div className='col-12 col-xl-3 my-2 my-md-0'>
+          <div className='col-3 my-md-0'>
             <Form.Group className='d-flex' controlId="orderOptionForm">
               <Form.Label className='w-50' column sm={2}><b className='homeText saleTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
@@ -188,12 +289,10 @@ export const SalesScreen = () => {
             </Form.Group>
           </div>
         </div>
-
         <div className='table-container mt-4' >
           <Table striped bordered hover>
             <thead>
               <tr>
-                {/* <th className='homeText text-center align-middle saleTitle'>ID</th> */}
                 <th className='homeText text-center align-middle saleTitle'>Fecha</th>
                 <th className='homeText text-center align-middle saleTitle'>Vendedor</th>
                 <th className='homeText text-center align-middle saleTitle'>Cliente</th>
@@ -206,6 +305,7 @@ export const SalesScreen = () => {
                 <th className='homeText text-center align-middle saleTitle'>Pago a cuenta</th>
                 <th className='homeText text-center align-middle saleTitle'>Saldo</th>
                 <th className='homeText text-center align-middle saleTitle'>Estado</th>
+                <th className='homeText text-center align-middle saleTitle'>Propina</th>
                 <th></th>
               </tr>
             </thead>
@@ -214,11 +314,9 @@ export const SalesScreen = () => {
                 const product = products.find((product) => product._id === sale.product);
                 const client = clients.find((client) => client._id === sale.client);
                 const user = users.find((user) => user._id === sale.user);
-
                 return (
                   <tr key={sale._id}>
-                    {/* <td className="text-center align-middle">{sale._id}</td> */}
-                    <td className="text-center align-middle">{formatDate(sale.date)}</td>
+                    <td className="text-center align-middle">{formatTableDate(formatDate(sale.date))}</td>
                     <td className="text-center align-middle">
                       {user ? `${user.lastName}, ${user.firstName}` : ''}
                     </td>
@@ -230,16 +328,17 @@ export const SalesScreen = () => {
                       {product ? `${product.type}` : ''}
                     </td>
                     <td className="text-center align-middle">{sale.productStatus}</td>
-                    <td className="text-center align-middle">{sale.unitPrice}</td>
-                    <td className="text-center align-middle">{sale.unitPrice * sale.amount}</td>
+                    <td className="text-center align-middle">${sale.unitPrice}</td>
+                    <td className="text-center align-middle">${sale.unitPrice * sale.amount}</td>
                     <td className="text-center align-middle">{sale.wayToPay}</td>
-                    <td className="text-center align-middle">{sale.payment}</td>
+                    <td className="text-center align-middle">${sale.payment}</td>
                     <td className="text-center align-middle">
-                      {sale.payment ? sale.amount * sale.unitPrice - sale.payment : null}
+                      ${sale.payment ? sale.amount * sale.unitPrice - sale.payment : null}
                     </td>
                     <td className={`text-center align-middle ${sale.amount * sale.unitPrice - sale.payment > 0 ? 'red-text' : (sale.amount * sale.unitPrice - sale.payment === 0 ? 'green-text' : 'blue-text')}`}>
                       {sale.amount * sale.unitPrice - sale.payment > 0 ? 'Saldo pendiente' : (sale.amount * sale.unitPrice - sale.payment === 0 ? 'Saldado' : 'Saldo a favor')}
                     </td>
+                    <td className="text-center align-middle">${sale.tip || 0}</td>
                     <td className="text-center align-middle">
                       <Button className='m-1 editButton' onClick={() => handleShowEditSaleModal(sale)} variant="secondary">
                         <span className="d-flex align-items-center justify-content-center">
@@ -258,10 +357,52 @@ export const SalesScreen = () => {
             </tbody>
           </Table>
         </div>
+        <AddSale show={showAddSaleModal} onHide={handleCloseAddSaleModal} fetchSales={fetchSales} />
+        <DeleteSale show={showDeleteSaleModal} onHide={handleCloseDeleteSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
+        <EditSale show={showEditSaleModal} onHide={handleCloseEditSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
+        <h1 className='mx-5 productTitle'><b>Arqueo</b></h1>
+        <div className='table-container mt-4'>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th className='homeText text-center align-middle saleTitle'></th>
+                <th className='homeText text-center align-middle saleTitle'>Cantidad</th>
+                <th className='homeText text-center align-middle saleTitle'>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Efectivo</td>
+                <td>{calculateCountByWayToPay("efectivo")}</td>
+                <td>${calculateSubtotalByWayToPay("efectivo")}</td>
+              </tr>
+              <tr>
+                <td>Mercado Pago</td>
+                <td>{calculateCountByWayToPay("mercadoPago")}</td>
+                <td>${calculateSubtotalByWayToPay("mercadoPago")}</td>
+              </tr>
+              <tr>
+                <td>Transferencias</td>
+                <td>{calculateCountByWayToPay("transferencia")}</td>
+                <td>${calculateSubtotalByWayToPay("transferencia")}</td>
+              </tr>
+              <tr>
+                <td colSpan={2}><b>SUBTOTAL</b></td>
+                <td><b>${calculateSubtotal()}</b></td>
+              </tr>
+              <tr>
+                <td>Propinas</td>
+                <td>{filteredSales.filter(sale => sale.tip !== null && sale.tip !== 0).length || 0}</td>
+                <td>${calculateTotalTips()}</td>
+              </tr>
+              <tr>
+                <td colSpan={2}><b>TOTAL</b></td>
+                <td><b>${calculateSubtotal() + calculateTotalTips()}</b></td>
+              </tr>
+            </tbody>
+          </Table>
+        </div>
       </div>
-      <AddSale show={showAddSaleModal} onHide={handleCloseAddSaleModal} fetchSales={fetchSales} />
-      <DeleteSale show={showDeleteSaleModal} onHide={handleCloseDeleteSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
-      <EditSale show={showEditSaleModal} onHide={handleCloseEditSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
     </>
   )
 }

@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Button } from 'react-bootstrap'
 import Modal from 'react-bootstrap/Modal'
 import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer'
 import Form from 'react-bootstrap/Form'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useForm } from "react-hook-form"
@@ -26,7 +27,7 @@ export const AddClient = ({ show, onHide, fetchClients }) => {
   //FUNCION PARA AGREGAR UN CLIENTE
   const handleAddClientFormSubmit = async (data) => {
     const isPaymentUpToDate = true
-    const newData = {...data, isPaymentUpToDate}
+    const newData = { ...data, isPaymentUpToDate }
     console.log(newData)
     try {
       const response = await axios.post('/clients', { ...newData }, {
@@ -107,18 +108,20 @@ export const AddClient = ({ show, onHide, fetchClients }) => {
       </Modal>
 
       {/* TOASTS*/}
-      <Toast show={showConfirmationAddClientToast} onClose={handleConfirmationAddClientToastClose} className="toastConfirmation" delay={5000} autohide>
-        <Toast.Header className="toastConfirmationHeader">
-          <strong className="me-auto">Registro Exitoso</strong>
-        </Toast.Header>
-        <Toast.Body>El nuevo cliente ha sido agregado correctamente.</Toast.Body>
-      </Toast>
-      <Toast show={showErrorAddClientToast} onClose={handleErrorAddClientToastClose} className="toastError" delay={5000} autohide>
-        <Toast.Header className="toastErrorHeader">
-          <strong className="me-auto">Error</strong>
-        </Toast.Header>
-        <Toast.Body>Hubo un error al agregar el nuevo cliente. Por favor, inténtalo nuevamente.</Toast.Body>
-      </Toast>
+      <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+        <Toast show={showConfirmationAddClientToast} onClose={handleConfirmationAddClientToastClose} className="toastConfirmation" delay={5000} autohide>
+          <Toast.Header className="toastConfirmationHeader">
+            <strong className="me-auto">Registro Exitoso</strong>
+          </Toast.Header>
+          <Toast.Body>El nuevo cliente ha sido agregado correctamente.</Toast.Body>
+        </Toast>
+        <Toast show={showErrorAddClientToast} onClose={handleErrorAddClientToastClose} className="toastError" delay={5000} autohide>
+          <Toast.Header className="toastErrorHeader">
+            <strong className="me-auto">Error</strong>
+          </Toast.Header>
+          <Toast.Body>Hubo un error al agregar el nuevo cliente. Por favor, inténtalo nuevamente.</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   )
 }

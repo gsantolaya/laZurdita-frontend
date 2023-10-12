@@ -3,6 +3,7 @@ import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import "./ClientsScreen.css"
 
@@ -66,19 +67,20 @@ export const DeleteClient = ({ show, onHide, fetchClients, selectedClient }) => 
             </Modal>
 
             {/* TOAST */}
-            <Toast show={showConfirmationToast} onClose={handleConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
-                <Toast.Header className="toastConfirmationHeader">
-                    <strong className="me-auto">Eliminación Exitosa</strong>
-                </Toast.Header>
-                <Toast.Body>El cliente ha sido eliminado correctamente.</Toast.Body>
-            </Toast>
-            <Toast show={showErrorToast} onClose={handleErrorToastClose} className="toastError" delay={5000} autohide>
-                <Toast.Header className="toastErrorHeader">
-                    <strong className="me-auto">Error</strong>
-                </Toast.Header>
-                <Toast.Body>Hubo un error al eliminar el cliente. Por favor, inténtalo nuevamente.</Toast.Body>
-            </Toast>
-
+            <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+                <Toast show={showConfirmationToast} onClose={handleConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
+                    <Toast.Header className="toastConfirmationHeader">
+                        <strong className="me-auto">Eliminación Exitosa</strong>
+                    </Toast.Header>
+                    <Toast.Body>El cliente ha sido eliminado correctamente.</Toast.Body>
+                </Toast>
+                <Toast show={showErrorToast} onClose={handleErrorToastClose} className="toastError" delay={5000} autohide>
+                    <Toast.Header className="toastErrorHeader">
+                        <strong className="me-auto">Error</strong>
+                    </Toast.Header>
+                    <Toast.Body>Hubo un error al eliminar el cliente. Por favor, inténtalo nuevamente.</Toast.Body>
+                </Toast>
+            </ToastContainer>
         </>
     )
 }

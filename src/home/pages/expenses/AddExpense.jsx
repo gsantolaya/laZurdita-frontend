@@ -4,6 +4,7 @@ import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer'
 import Form from 'react-bootstrap/Form'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useForm } from "react-hook-form"
@@ -49,11 +50,8 @@ export const AddExpense = ({ show, onHide, fetchExpenses }) => {
     const unitPriceField = document.getElementById("formBasicPayment");
 
     if (selectedProduct && typeSelect && unitPriceField) {
-      // Determine the product's price based on the selected type of expense
       const selectedType = typeSelect.value;
       const price = selectedType === "mayorista" ? selectedProduct.wholeexpensePrice : selectedProduct.retailPrice;
-
-      // Update the "Precio unitario" field with the calculated price
       unitPriceField.value = price;
     }
   };
@@ -188,18 +186,20 @@ export const AddExpense = ({ show, onHide, fetchExpenses }) => {
       </Modal>
 
       {/* TOASTS*/}
-      <Toast show={showConfirmationAddExpenseToast} onClose={handleConfirmationAddExpenseToastClose} className="toastConfirmation" delay={5000} autohide>
-        <Toast.Header className="toastConfirmationHeader">
-          <strong className="me-auto">Registro Exitoso</strong>
-        </Toast.Header>
-        <Toast.Body>Nuevo gasto registrado.</Toast.Body>
-      </Toast>
-      <Toast show={showErrorAddExpenseToast} onClose={handleErrorAddExpenseToastClose} className="toastError" delay={5000} autohide>
-        <Toast.Header className="toastErrorHeader">
-          <strong className="me-auto">Error</strong>
-        </Toast.Header>
-        <Toast.Body>Hubo un error al registrar el gasto. Por favor, inténtalo nuevamente.</Toast.Body>
-      </Toast>
+      <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+        <Toast show={showConfirmationAddExpenseToast} onClose={handleConfirmationAddExpenseToastClose} className="toastConfirmation" delay={5000} autohide>
+          <Toast.Header className="toastConfirmationHeader">
+            <strong className="me-auto">Registro Exitoso</strong>
+          </Toast.Header>
+          <Toast.Body>Nuevo gasto registrado.</Toast.Body>
+        </Toast>
+        <Toast show={showErrorAddExpenseToast} onClose={handleErrorAddExpenseToastClose} className="toastError" delay={5000} autohide>
+          <Toast.Header className="toastErrorHeader">
+            <strong className="me-auto">Error</strong>
+          </Toast.Header>
+          <Toast.Body>Hubo un error al registrar el gasto. Por favor, inténtalo nuevamente.</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   )
 }

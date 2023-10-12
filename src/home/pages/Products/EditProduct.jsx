@@ -3,6 +3,7 @@ import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer';
 import { useForm } from "react-hook-form"
 import Form from 'react-bootstrap/Form'
 import "./ProductsScreen.css"
@@ -65,7 +66,7 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
     <>
       {/* MODAL */}
       <Modal show={show} onHide={onHide}>
-        <Modal.Header className='modalHeader' closeButton>
+        <Modal.Header closeButton className='modalHeader'>
           <Modal.Title className="modalTitle">
             <strong>Modificar producto</strong>
           </Modal.Title>
@@ -74,7 +75,7 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
           {selectedProduct ? (
             <Form className='d-flex flex-wrap justify-content-center' onSubmit={handleSubmit(handleEditProductFormSubmit)}>
               <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicType">
-                <Form.Label>Variedad</Form.Label>
+                <Form.Label>Variedad:</Form.Label>
                 <Form.Control
                   type="text"
                   maxLength={30}
@@ -83,55 +84,58 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
                   {...register('type', { required: true })}
                   defaultValue={selectedProduct.type}
                 />
-                {errors?.type && (<span className="authSpan">Este campo es requerido</span>)}
+                {errors.type && (<span className="authSpan">Este campo es requerido</span>)}
               </Form.Group>
               <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicUnitPrice">
-                <Form.Label>Precio por unidad</Form.Label>
+                <Form.Label>Precio por unidad:</Form.Label>
                 <Form.Control
                   type="number"
-                  maxLength={20}
+                  min="0"
+                  step="0.01" // Agregado para permitir valores decimales
                   name="unitPrice"
                   placeholder="Ingrese el precio"
-                  {...register('unitPrice', { required: true })}
-                  defaultValue={selectedProduct.wholesalePrice}
+                  {...register('unitPrice', { required: true, min: 0 })}
+                  defaultValue={selectedProduct.unitPrice}
                 />
-                {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
+                {errors.unitPrice && (<span className="authSpan">Este campo es requerido y debe ser un número positivo</span>)}
               </Form.Group>
               <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicRetailPrice">
-                <Form.Label>Precio minorista</Form.Label>
+                <Form.Label>Precio minorista:</Form.Label>
                 <Form.Control
                   type="number"
-                  maxLength={20}
+                  min="0"
+                  step="0.01" // Agregado para permitir valores decimales
                   name="retailPrice"
                   placeholder="Ingrese el precio"
-                  {...register('retailPrice', { required: true })}
+                  {...register('retailPrice', { required: true, min: 0 })}
                   defaultValue={selectedProduct.retailPrice}
                 />
-                {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
+                {errors.retailPrice && (<span className="authSpan">Este campo es requerido y debe ser un número positivo</span>)}
               </Form.Group>
               <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicWholesalePrice">
-                <Form.Label>Precio mayorista</Form.Label>
+                <Form.Label>Precio mayorista:</Form.Label>
                 <Form.Control
                   type="number"
-                  maxLength={20}
+                  min="0"
+                  step="0.01" // Agregado para permitir valores decimales
                   name="wholesalePrice"
                   placeholder="Ingrese el precio"
-                  {...register('wholesalePrice', { required: true })}
+                  {...register('wholesalePrice', { required: true, min: 0 })}
                   defaultValue={selectedProduct.wholesalePrice}
                 />
-                {errors?.value && (<span className="authSpan">Este campo es requerido</span>)}
+                {errors.wholesalePrice && (<span className="authSpan">Este campo es requerido y debe ser un número positivo</span>)}
               </Form.Group>
               <Form.Group className="formFields m-2 col-10 col-md-5" controlId="formBasicStock">
-                <Form.Label>Stock</Form.Label>
+                <Form.Label>Stock:</Form.Label>
                 <Form.Control
                   type="number"
-                  maxLength={20}
+                  min="0"
                   name="stock"
                   placeholder="Ingrese el stock"
-                  {...register('stock', { required: true })}
+                  {...register('stock', { required: true, min: 0 })}
                   defaultValue={selectedProduct.stock}
                 />
-                {errors?.stock && (<span className="authSpan">Este campo es requerido</span>)}
+                {errors.stock && (<span className="authSpan">Este campo es requerido y debe ser un número positivo</span>)}
               </Form.Group>
               <Modal.Footer className="mt-3 col-12">
                 <Button className='buttonsFormAddProduct m-2 w-100' variant="secondary" type="submit">
@@ -149,19 +153,20 @@ export const EditProduct = ({ show, onHide, fetchProducts, selectedProduct }) =>
       </Modal>
 
       {/* TOASTS */}
-      <Toast show={showEditProductConfirmationToast} onClose={handleEditProductConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
-        <Toast.Header className="toastConfirmationHeader">
-          <strong className="me-auto">Actualización Exitosa</strong>
-        </Toast.Header>
-        <Toast.Body>Los cambios en el producto se han guardado correctamente.</Toast.Body>
-      </Toast>
-
-      <Toast show={showEditProductErrorToast} onClose={handleEditProductErrorToastClose} className="toastError" delay={5000} autohide>
-        <Toast.Header className="toastErrorHeader">
-          <strong className="me-auto">Error</strong>
-        </Toast.Header>
-        <Toast.Body>Hubo un error al guardar los cambios en el producto. Por favor, inténtalo nuevamente.</Toast.Body>
-      </Toast>
+      <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+        <Toast show={showEditProductConfirmationToast} onClose={handleEditProductConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
+          <Toast.Header className="toastConfirmationHeader">
+            <strong className="me-auto">Actualización Exitosa</strong>
+          </Toast.Header>
+          <Toast.Body>Los cambios en el producto se han guardado correctamente.</Toast.Body>
+        </Toast>
+        <Toast show={showEditProductErrorToast} onClose={handleEditProductErrorToastClose} className="toastError" delay={5000} autohide>
+          <Toast.Header className="toastErrorHeader">
+            <strong className="me-auto">Error</strong>
+          </Toast.Header>
+          <Toast.Body>Hubo un error al guardar los cambios en el producto. Por favor, inténtalo nuevamente.</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   )
 }

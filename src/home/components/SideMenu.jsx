@@ -19,17 +19,14 @@ export function SideMenu() {
       <Nav.Link className={`sideMenuLinks ${isActive('/home/clients')}`} href="/home/clients">
         Clientes
       </Nav.Link>
+      <Nav.Link className={`sideMenuLinks ${isActive('/home/orders')}`} href="/home/orders">
+        Pedidos
+      </Nav.Link>
       <Nav.Link className={`sideMenuLinks ${isActive('/home/sales')}`} href="/home/sales">
         Ventas
       </Nav.Link>
       <Nav.Link className={`sideMenuLinks ${isActive('/home/expenses')}`} href="/home/expenses">
         Gastos
-      </Nav.Link>
-      <Nav.Link className={`sideMenuLinks ${isActive('/home/arqueo')}`} href="/home/arqueo">
-        Arqueo
-      </Nav.Link>
-      <Nav.Link className={`sideMenuLinks ${isActive('/home/orders')}`} href="/home/orders">
-        Pedidos
       </Nav.Link>
       <Nav.Link className="log" href="/" onClick={handleLogout}>
         Cerrar Sesión

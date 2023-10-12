@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useForm } from 'react-hook-form';
-import { FaTrashAlt } from 'react-icons/fa';
-import { Modal, Toast, Form, Button } from 'react-bootstrap';
-import { TokenStorage } from '../../../utils/TokenStorage';
-import { tokenIsValid } from '../../../utils/TokenIsValid';
-import './SalesScreen.css';
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useForm } from 'react-hook-form'
+import { FaTrashAlt } from 'react-icons/fa'
+import { Modal, Toast, Form, Button } from 'react-bootstrap'
+import ToastContainer from 'react-bootstrap/ToastContainer'
+import { TokenStorage } from '../../../utils/TokenStorage'
+import { tokenIsValid } from '../../../utils/TokenIsValid'
+import './SalesScreen.css'
 
 export const AddSale = ({ show, onHide, fetchSales }) => {
   const { handleSubmit, register, reset, formState: { errors }, setValue, watch } = useForm();
@@ -408,18 +409,20 @@ export const AddSale = ({ show, onHide, fetchSales }) => {
       </Modal>
 
       {/* TOASTS */}
-      <Toast show={showConfirmationAddSaleToast} onClose={handleConfirmationAddSaleToastClose} className="toastConfirmation" delay={5000} autohide>
-        <Toast.Header className="toastConfirmationHeader">
-          <strong className="me-auto">Registro Exitoso</strong>
-        </Toast.Header>
-        <Toast.Body>Nueva venta registrada.</Toast.Body>
-      </Toast>
-      <Toast show={showErrorAddSaleToast} onClose={handleErrorAddSaleToastClose} className="toastError" delay={5000} autohide>
-        <Toast.Header className="toastErrorHeader">
-          <strong className="me-auto">Error</strong>
-        </Toast.Header>
-        <Toast.Body>Hubo un error al registrar la venta. Por favor, inténtalo nuevamente.</Toast.Body>
-      </Toast>
+      <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+        <Toast show={showConfirmationAddSaleToast} onClose={handleConfirmationAddSaleToastClose} className="toastConfirmation" delay={5000} autohide>
+          <Toast.Header className="toastConfirmationHeader">
+            <strong className="me-auto">Registro Exitoso</strong>
+          </Toast.Header>
+          <Toast.Body>Nueva venta registrada.</Toast.Body>
+        </Toast>
+        <Toast show={showErrorAddSaleToast} onClose={handleErrorAddSaleToastClose} className="toastError" delay={5000} autohide>
+          <Toast.Header className="toastErrorHeader">
+            <strong className="me-auto">Error</strong>
+          </Toast.Header>
+          <Toast.Body>Hubo un error al registrar la venta. Por favor, inténtalo nuevamente.</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   );
 };

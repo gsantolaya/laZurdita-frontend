@@ -39,11 +39,11 @@ export const LoginScreen = () => {
   }, [navigate]);
 
   return (
-    <div className="loginContainer ">
+    <div className="loginContainer">
       <div className="loginForm col-12 col-md-4 py-5 m-md-4 pt-md-5 px-md-5 pb-md-4">
         <h3 className="loginTitle mb-3">Iniciar Sesión</h3>
         <Form onSubmit={handleSubmit(Submit)}>
-          <Form.Group className="loginFormGroup p-3 m-3" controlId="formBasicEmail">
+          <Form.Group className="loginFormGroup p-3 my-3" controlId="formBasicEmail">
             <div className="col-10">
               <Form.Label className="d-inline">Email:</Form.Label>
               <input
@@ -69,7 +69,7 @@ export const LoginScreen = () => {
               <MdEmail size={25} />
             </div>
           </Form.Group>
-          <Form.Group className="loginFormGroup p-3 m-3" controlId="formBasicPassword">
+          <Form.Group className="loginFormGroup p-3 my-3" controlId="formBasicPassword">
             <div className="col-10">
               <Form.Label className="d-inline">Contraseña:</Form.Label>
               <input

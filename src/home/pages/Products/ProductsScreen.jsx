@@ -5,7 +5,6 @@ import Table from 'react-bootstrap/Table'
 import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import Nav from 'react-bootstrap/Nav'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
@@ -93,9 +92,9 @@ export const ProductsScreen = () => {
     } else if (orderOption === 'Variedad ↑') {
       return b.type.localeCompare(a.type)
     } else if (orderOption === 'Stock ↓') {
-      return b.stock - a.stock
-    } else if (orderOption === 'Stock ↑') {
       return a.stock - b.stock
+    } else if (orderOption === 'Stock ↑') {
+      return b.stock - a.stock
     }
     return 0
   }
@@ -116,12 +115,10 @@ export const ProductsScreen = () => {
   //FUNCION PARA IMPRIMIR LA TABLA
   const handlePrintTable = () => {
     const printWindow = window.open('', '', 'width=800,height=600')
-
     printWindow.document.write('<html><head><title>Tabla de Productos</title></head><body>')
     printWindow.document.write('<h1>Nuestras Empanadas</h1>')
     printWindow.document.write('<table border="1">')
     printWindow.document.write('<thead><tr>')
-    printWindow.document.write('<th>ID</th>')
     printWindow.document.write('<th>Variedad</th>')
     printWindow.document.write('<th>Precio por unidad</th>')
     printWindow.document.write('<th>Precio Minorista</th>')
@@ -132,7 +129,6 @@ export const ProductsScreen = () => {
     // Agrega los datos de los productos a la tabla de la ventana de impresión
     filteredProducts.slice().sort(compareProducts).forEach((product) => {
       printWindow.document.write('<tr>')
-      printWindow.document.write(`<td>${product._id}</td>`)
       printWindow.document.write(`<td>${product.type}</td>`)
       printWindow.document.write(`<td>${product.unitPrice}</td>`)
       printWindow.document.write(`<td>${product.retailPrice}</td>`)
@@ -162,7 +158,7 @@ export const ProductsScreen = () => {
               <Form.Control
                 maxLength={30}
                 type="text"
-                placeholder="Buscar producto"
+                placeholder="Buscar empanada por variedad"
                 value={searchTerm}
                 onChange={handleSearchInputChange}
               />
@@ -183,14 +179,13 @@ export const ProductsScreen = () => {
             <Button variant="secondary" onClick={handlePrintTable}>Imprimir tabla en pantalla <BsPrinterFill /></Button>
           </div>
           <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
-            <Nav.Link className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Empanada</Nav.Link>
+            <Button variant='' className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Empanada</Button>
           </div>
         </div>
         <div className='table-container mt-4' >
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className='homeText text-center align-middle productTitle'>ID</th>
                 <th className='homeText text-center align-middle productTitle'>Variedad</th>
                 <th className='homeText text-center align-middle productTitle'>Precio por unidad</th>
                 <th className='homeText text-center align-middle productTitle'>Precio Minorista</th>
@@ -202,11 +197,10 @@ export const ProductsScreen = () => {
             <tbody>
               {filteredProducts.slice().sort(compareProducts).map((product) => (
                 <tr key={product._id}>
-                  <td className="text-center align-middle">{product._id}</td>
                   <td className="text-center align-middle">{product.type}</td>
-                  <td className="text-center align-middle">{product.unitPrice}</td>
-                  <td className="text-center align-middle">{product.retailPrice}</td>
-                  <td className="text-center align-middle">{product.wholesalePrice}</td>
+                  <td className="text-center align-middle">${product.unitPrice}</td>
+                  <td className="text-center align-middle">${product.retailPrice}</td>
+                  <td className="text-center align-middle">${product.wholesalePrice}</td>
                   <td className="text-center align-middle">{product.stock}</td>
                   <td className="text-center align-middle">
                     <Button className='m-1 editButton' onClick={() => handleShowEditProductModal(product)} variant="">

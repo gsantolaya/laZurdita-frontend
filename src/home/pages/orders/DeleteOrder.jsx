@@ -3,6 +3,7 @@ import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer'
 import { TokenStorage } from "../../../utils/TokenStorage"
 
 export const DeleteOrder = ({ show, onHide, fetchSales, selectedSale, products }) => {
@@ -30,20 +31,20 @@ export const DeleteOrder = ({ show, onHide, fetchSales, selectedSale, products }
             if (response.status === 200) {
                 const product = products.find((product) => product._id === saleToDelete.product);
                 let newStock = product.stock;
-                
+
                 if (saleToDelete.amountDescription === 'docena') {
                     newStock += saleToDelete.amount * 12;
                 } else {
                     newStock += saleToDelete.amount;
                 }
-    
+
                 // Realizar el patch en la ruta correspondiente
                 const patchResponse = await axios.patch(`/products/${saleToDelete.product}/stock`, { stock: newStock }, {
                     headers: {
                         "access-token": store.token
                     }
                 });
-    
+
                 if (patchResponse.status === 200) {
                     onHide();
                     setShowConfirmationToast(true);
@@ -58,7 +59,7 @@ export const DeleteOrder = ({ show, onHide, fetchSales, selectedSale, products }
             console.error(error);
         }
     }
-    
+
 
     return (
         <>
@@ -81,18 +82,20 @@ export const DeleteOrder = ({ show, onHide, fetchSales, selectedSale, products }
             </Modal>
 
             {/* TOAST */}
-            <Toast show={showConfirmationToast} onClose={handleConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
-                <Toast.Header className="toastConfirmationHeader">
-                    <strong className="me-auto">Cancelación Exitosa</strong>
-                </Toast.Header>
-                <Toast.Body>El pedido ha sido cancelado correctamente.</Toast.Body>
-            </Toast>
-            <Toast show={showErrorToast} onClose={handleErrorToastClose} className="toastError" delay={5000} autohide>
-                <Toast.Header className="toastErrorHeader">
-                    <strong className="me-auto">Error</strong>
-                </Toast.Header>
-                <Toast.Body>Hubo un error al cancelar el pedido. Por favor, inténtalo nuevamente.</Toast.Body>
-            </Toast>
+            <ToastContainer className="p-3" style={{ position: 'fixed', zIndex: 1, bottom: '20px', right: '20px', }} >
+                <Toast show={showConfirmationToast} onClose={handleConfirmationToastClose} className="toastConfirmation" delay={5000} autohide>
+                    <Toast.Header className="toastConfirmationHeader">
+                        <strong className="me-auto">Cancelación Exitosa</strong>
+                    </Toast.Header>
+                    <Toast.Body>El pedido ha sido cancelado correctamente.</Toast.Body>
+                </Toast>
+                <Toast show={showErrorToast} onClose={handleErrorToastClose} className="toastError" delay={5000} autohide>
+                    <Toast.Header className="toastErrorHeader">
+                        <strong className="me-auto">Error</strong>
+                    </Toast.Header>
+                    <Toast.Body>Hubo un error al cancelar el pedido. Por favor, inténtalo nuevamente.</Toast.Body>
+                </Toast>
+            </ToastContainer>
         </>
     )
 }

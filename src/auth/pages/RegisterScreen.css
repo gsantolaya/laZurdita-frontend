@@ -1,22 +1,22 @@
 .registerContainer {
-    background-color: #95968a !important;
+    background-color: #837467 !important;
     min-height: 70vh;
-    color: #22223b !important;
+    color: #5f3c23 !important;
     justify-content: center;
     display: flex;
     align-items: center;
 }
 
 .registerForm {
-    background-color: #CDCFC0 !important;
-    border: #22223b solid 3px;
+    background-color: #fff5d7 !important;
+    border: #595858 solid 3px;
     border-radius: 10px;
     margin: 0 auto;
     padding: 20px;
 }
 
 .registerTitle {
-    color: #22223b;
+    color: #5f3c23;
     font-weight: bold;
     text-align: center;
 }
@@ -47,7 +47,7 @@
     cursor: pointer;
     font-weight: bold;
     color: white;
-    background-color: #22223b;
+    background-color: #595858;
     border-radius: 8px;
     transition-duration: 1s;
 }
@@ -62,12 +62,11 @@
 }
 
 .registerLink {
-    color: #22223b;
+    color: #5f3c23;
     text-decoration: none;
 }
 
 .registerLink:hover {
-    color: #22223b;
     text-decoration: underline;
 }
 

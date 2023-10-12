@@ -163,15 +163,6 @@ export const OrdersScreen = () => {
         } else if (orderOption === 'date ↑') {
             return new Date(b.date) - new Date(a.date);
         }
-        // else if (orderOption === 'Cliente ↓') {
-        //     return b.stock - a.stock
-        // } else if (orderOption === 'Cliente ↑') {
-        //     return a.stock - b.stock
-        // } else if (orderOption === 'Vendedor ↓') {
-        //     return b.stock - a.stock
-        // } else if (orderOption === 'Vendedor ↑') {
-        //     return a.stock - b.stock
-        // }
         return 0
     }
 
