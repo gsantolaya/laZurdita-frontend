@@ -8,7 +8,7 @@ import Nav from 'react-bootstrap/Nav'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
-import { BsSearch } from "react-icons/bs"
+import { BsSearch, BsPrinterFill } from "react-icons/bs"
 import "./OrdersScreen.css"
 import { AddOrder } from './AddOrder'
 import { DeleteOrder } from './DeleteOrder'
@@ -175,6 +175,46 @@ export const OrdersScreen = () => {
         return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
     }
 
+
+    //FUNCION PARA IMPRIMIR LA TABLA
+    const handlePrintTable = () => {
+        const printWindow = window.open('', '', 'width=800,height=600')
+        printWindow.document.write('<html><head><title>Tabla de Pedidos</title></head><body>')
+        printWindow.document.write('<h1>Nuestros Pedidos</h1>')
+        printWindow.document.write('<table border="1">')
+        printWindow.document.write('<thead><tr>')
+        printWindow.document.write('<th>Fecha</th>')
+        printWindow.document.write('<th>Vendedor</th>')
+        printWindow.document.write('<th>Detalles del cliente</th>')
+        printWindow.document.write('<th>Detalles del pedido</th>')
+        printWindow.document.write('<th>Total</th>')
+        printWindow.document.write('</tr></thead><tbody>')
+
+        // Agrega los datos de los productos a la tabla de la ventana de impresión
+        filteredSales.slice().sort(compareSales).forEach((sale) => {
+            const product = products.find((product) => product._id === sale.product);
+            const client = clients.find((client) => client._id === sale.client);
+            const user = users.find((user) => user._id === sale.user);
+
+            printWindow.document.write('<tr>')
+            printWindow.document.write(`<td>${formatDate(sale.date)}</td>`)
+            printWindow.document.write(`<td>${user ? `${user.firstName} ${user.lastName}` : ''}</td>`)
+            printWindow.document.write(`<td>Nombre: ${client ? `${client.lastName}, ${client.firstName}` : ''}<br>Dirección: ${client ? `${client.address}` : ''}<br>Teléfono: ${client ? `${client.phone}` : ''}</td>`)
+            printWindow.document.write(`<td>Variedad: ${product ? `${product.type}` : ''}<br>Cantidad: ${sale.amount} - ${sale.amountDescription}<br>Estado: ${sale.productStatus}</td>`)
+            printWindow.document.write(`<td>${sale.unitPrice * sale.amount}</td>`)
+            printWindow.document.write('</tr>')
+        })
+
+        printWindow.document.write('</tbody></table>')
+        printWindow.document.write('</body></html>')
+
+        printWindow.document.close()
+        printWindow.print()
+        printWindow.close()
+    }
+
+
+
     return (
         <>
             <div className='text-center p-5'>
@@ -230,7 +270,13 @@ export const OrdersScreen = () => {
                                 <th className='homeText text-center align-middle saleTitle'>Detalles del cliente</th>
                                 <th className='homeText text-center align-middle saleTitle'>Detalles del pedido</th>
                                 <th className='homeText text-center align-middle saleTitle'>Total</th>
-                                <th></th>
+                                <th>
+                                    <Button className='m-1' variant="secondary" onClick={handlePrintTable}>
+                                        <span className="d-flex align-items-center justify-content-center">
+                                            <BsPrinterFill />
+                                        </span>
+                                    </Button>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -257,7 +303,7 @@ export const OrdersScreen = () => {
                                         </td>
                                         <td className="text-center align-middle">${sale.unitPrice * sale.amount}</td>
                                         <td className="text-center align-middle">
-                                            <Button className='m-1 editButton' variant="secondary" onClick={() => handleShowFinishOrderModal(sale)}>
+                                            <Button className='m-1 editButton' variant="" onClick={() => handleShowFinishOrderModal(sale)}>
                                                 <span className="d-flex align-items-center justify-content-center">
                                                     Finalizar pedido
                                                 </span>

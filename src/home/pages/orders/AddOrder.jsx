@@ -8,6 +8,7 @@ import { TokenStorage } from '../../../utils/TokenStorage'
 import { tokenIsValid } from '../../../utils/TokenIsValid'
 
 export const AddOrder = ({ show, onHide, fetchSales }) => {
+
   const { handleSubmit, register, reset, formState: { errors }, setValue, watch } = useForm()
   const [showConfirmationAddSaleToast, setShowConfirmationAddSaleToast] = useState(false)
   const [showErrorAddSaleToast, setShowErrorAddSaleToast] = useState(false)
@@ -19,8 +20,10 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
   const decodedToken = tokenIsValid()
   const userId = `${decodedToken.id}`
   const [currentDate, setCurrentDate] = useState('')
-  const [subtotals, setSubtotals] = useState([])
+
+  const [subtotals, setSubtotals] = useState([0])
   const [total, setTotal] = useState(0)
+
   const [productFieldsData, setProductFieldsData] = useState({})
 
   // MANEJO LA FECHA
@@ -74,6 +77,20 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
     }
   }, [store.tokenValid, store.token])
 
+
+
+  //CERRAR EL MODAL CON CANCELAR O X
+  const handleOnHideModal = () => {
+    reset()
+    setAdditionalProductFields([]);
+    setNextId(1)
+    setSubtotals([0])
+    setTotal(0)
+    setProductFieldsData({})
+    onHide();
+  };
+
+
   const handleConfirmationAddSaleToastClose = () => {
     setShowConfirmationAddSaleToast(false)
   }
@@ -124,17 +141,17 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
       alert("Debes agregar al menos un producto.")
       return
     }
-  
+
     try {
       const salesPromises = []
       const productIdToAmountMap = {} // Mapa para rastrear las cantidades por productId
-  
+
       additionalProductFields.forEach((productField, index) => {
         const productId = data[`product${productField.id}`]
         const amount = parseFloat(data[`amount${productField.id}`])
         const amountDescription = data[`amountDescription${productField.id}`]
         const productStatus = data[`productStatus${productField.id}`]
-  
+
         // Comprobar si ya hemos visto este producto
         if (productId in productIdToAmountMap) {
           // Sumar la cantidad al producto existente
@@ -151,7 +168,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
             productIdToAmountMap[productId] = amount;
           }
         }
-  
+
         const saleToCreate = {
           date: data.date,
           user: userId,
@@ -163,7 +180,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
           productStatus: productStatus,
           unitPrice: parseFloat(data[`unitPrice${productField.id}`]),
         };
-  
+
         salesPromises.push(
           axios.post('/sales/', saleToCreate, {
             headers: {
@@ -172,17 +189,17 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
           })
         );
       });
-  
+
       const responses = await Promise.all(salesPromises);
       const isError = responses.some(response => response.status !== 201);
-  
+
       if (isError) {
         setShowErrorAddSaleToast(true);
       } else {
         // Actualizar el stock de los productos
         for (const productId in productIdToAmountMap) {
           const amount = productIdToAmountMap[productId];
-  
+
           axios.get(`/products/${productId}`, {
             headers: {
               "access-token": store.token
@@ -191,7 +208,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
             .then((response) => {
               const product = response.data;
               let newStock = product.stock - amount;
-  
+
               axios.patch(`/products/${productId}/stock`, { stock: newStock }, {
                 headers: {
                   "access-token": store.token
@@ -208,10 +225,15 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
               console.error(`Error fetching product ${productId}: ${error}`);
             });
         }
-  
+
         setShowConfirmationAddSaleToast(true);
-        reset();
-        onHide();
+        reset()
+        setNextId(1)
+        setSubtotals([0])
+        setTotal(0)
+        setProductFieldsData({})
+        onHide()
+        setAdditionalProductFields([]);
         fetchSales();
         printOrder(data, additionalProductFields, subtotals, total);
       }
@@ -220,7 +242,6 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
       setShowErrorAddSaleToast(true);
     }
   };
-  
 
 
 
@@ -234,121 +255,166 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
       if (statusSelect) {
         statusSelect.value = selectedClient.category
       }
-      // Actualizamos el valor del campo "Tipo de venta" de forma síncrona
       setValue("type", selectedClient.category === 'mayorista' ? 'mayorista' : 'minorista')
     } else {
-      // Manejar el caso donde selectedClient es undefined, por ejemplo, limpiar valores o mostrar un mensaje de error.
+      alert('Error, cliente no encontrado')
     }
   }
 
   const typeValue = watch("type")
 
+  //ESTABLECER EL PRECIO DEL PRODUCTO POR UNIDAD SI ES UNA VENTA MAYORISTA AL SELECCIONAR UNA VARIEDAD
   const handleProductChange = (event, fieldId) => {
     const productId = event.target.value
-
-    // Buscar el producto seleccionado en el estado 'products'
     const selectedProduct = products.find((product) => product._id === productId)
 
     if (selectedProduct) {
-      // Obtener el precio unitario del producto seleccionado basado en 'typeValue'
       const unitPrice = typeValue === 'mayorista' ? selectedProduct.wholesalePrice : selectedProduct.retailPrice
-
-      // Actualizar el precio unitario en el campo correspondiente
       setValue(`unitPrice${fieldId}`, unitPrice)
     } else {
-      // Manejar el caso donde el producto seleccionado no se encuentra, por ejemplo, limpiar el campo de precio unitario.
-      setValue(`unitPrice${fieldId}`, '') // Esto limpia el campo de precio unitario si el producto no se encuentra
+      setValue(`unitPrice${fieldId}`, '')
     }
   }
 
+  ///ESTABLECER EL PRECIO DEL PRODUCTO POR UNIDAD SI ES UNA VENTA MINORISTA
   const handleAmountDescriptionChange = (event, fieldId) => {
-    const selectedAmountDescription = event.target.value
+    const selectedAmountDescription = event.target.value;
 
     if (selectedAmountDescription === 'unidad') {
-      // Obtener el producto seleccionado en este campo
-      const selectedProductId = watch(`product${fieldId}`)
-      const selectedProduct = products.find((product) => product._id === selectedProductId)
-
+      const selectedProductId = watch(`product${fieldId}`);
+      const selectedProduct = products.find((product) => product._id === selectedProductId);
       if (selectedProduct) {
-        // Obtener el precio unitario del producto y establecerlo en el campo 'unitPrice'
-        setValue(`unitPrice${fieldId}`, selectedProduct.unitPrice)
+        setValue(`unitPrice${fieldId}`, selectedProduct.unitPrice);
+        // Recalculate subtotal and total
+        const amount = parseFloat(watch(`amount${fieldId}`));
+        const unitPrice = selectedProduct.unitPrice;
+        const subtotal = isNaN(amount) ? 0 : amount * unitPrice;
+        setSubtotals((prevSubtotals) => {
+          const updatedSubtotals = [...prevSubtotals];
+          updatedSubtotals[fieldId] = subtotal;
+          return updatedSubtotals;
+        });
+        // Recalculate total
+        const calculatedTotal = subtotals.reduce((accumulator, currentSubtotal) => {
+          return accumulator + currentSubtotal;
+        }, 0);
+        setTotal(calculatedTotal);
       }
     } else {
-      // Manejar otros casos aquí, si es necesario
-      // Por ejemplo, puedes borrar el valor de 'unitPrice' si se selecciona "Docena".
-      setValue(`unitPrice${fieldId}`, '') // Esto limpia el campo de 'unitPrice' si no es "Unidad".
+      const selectedProductId = watch(`product${fieldId}`);
+      const selectedProduct = products.find((product) => product._id === selectedProductId);
+      if (selectedProduct) {
+        setValue(`unitPrice${fieldId}`, selectedProduct.retailPrice);
+        // Recalculate subtotal and total
+        const amount = parseFloat(watch(`amount${fieldId}`));
+        const unitPrice = selectedProduct.retailPrice;
+        const subtotal = isNaN(amount) ? 0 : amount * unitPrice;
+        setSubtotals((prevSubtotals) => {
+          const updatedSubtotals = [...prevSubtotals];
+          updatedSubtotals[fieldId] = subtotal;
+          return updatedSubtotals;
+        });
+        // Recalculate total
+        const calculatedTotal = subtotals.reduce((accumulator, currentSubtotal) => {
+          return accumulator + currentSubtotal;
+        }, 0);
+        setTotal(calculatedTotal);
+      }
     }
-  }
+  };
 
 
-
-  //IMPRIMIR COMANDA
+  // IMPRIMIR COMANDA
   const printOrder = (data, additionalProductFields) => {
-    // Crea una tabla HTML con los datos de la orden
-    const selectedClientId = data.client
-    const selectedClient = clients.find((client) => client._id === selectedClientId)
-    const clientFullName = selectedClient ? (selectedClient.lastName + ', ' + selectedClient.firstName) : ''
-    const table = `
+    const selectedClientId = data.client;
+    const selectedClient = clients.find((client) => client._id === selectedClientId);
+    const clientFullName = selectedClient ? `${selectedClient.firstName} ${selectedClient.lastName}` : 'Cliente Desconocido';
+
+    const tableHeader = `
     <h1><b>La Zurdita</b></h1>
     <h3><b>Fecha:</b> ${data.date}</h3>
     <h3><b>Cliente:</b> ${clientFullName}</h3>
-    <table>
+  `;
+
+    const tableBody = `
+    <table style="border-collapse: collapse; width: 100%;">
       <thead>
         <tr>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Descripción Cantidad</th>
-          <th>Estado del Producto</th>
-          <th>Precio Unitario</th>
-          <th>Subtotal</th>
+          <th style="border: 1px solid #000; padding: 5px;">Producto</th>
+          <th style="border: 1px solid #000; padding: 5px;">Cantidad</th>
+          <th style="border: 1px solid #000; padding: 5px;">Descripción Cantidad</th>
+          <th style="border: 1px solid #000; padding: 5px;">Estado del Producto</th>
+          <th style="border: 1px solid #000; padding: 5px;">Precio Unitario</th>
+          <th style="border: 1px solid #000; padding: 5px;">Subtotal</th>
         </tr>
       </thead>
       <tbody>
         ${additionalProductFields.map((field, index) => {
-      const selectedProductId = data[`product${field.id}`]
-      const selectedProduct = products.find((product) => product._id === selectedProductId)
-      const productType = selectedProduct ? selectedProduct.type : ''
+      const selectedProductId = data[`product${field.id}`];
+      const selectedProduct = products.find((product) => product._id === selectedProductId);
+      const productType = selectedProduct ? selectedProduct.type : 'Producto Desconocido';
+
+      const amount = data[`amount${field.id}`];
+      const amountDescription = data[`amountDescription${field.id}`];
+      const productStatus = data[`productStatus${field.id}`];
+      const unitPrice = data[`unitPrice${field.id}`];
+      const subtotal = unitPrice * amount;
+
       return `
             <tr key=${field.id}>            
-              <td>${productType}</td>
-              <td>${data[`amount${field.id}`]}</td>
-              <td>${data[`amountDescription${field.id}`]}</td>
-              <td>${data[`productStatus${field.id}`]}</td>
-              <td>${data[`unitPrice${field.id}`]}</td>
-              <td>$${data[`unitPrice${field.id}`] * data[`amount${field.id}`]}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${productType}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${amount}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${amountDescription}</td>
+              <td style="border: 1px solid #000; padding: 5px;">${productStatus}</td>
+              <td style="border: 1px solid #000; padding: 5px;">$${unitPrice}</td>
+              <td style="border: 1px solid #000; padding: 5px;">$${subtotal}</td>
             </tr>
-          `
+          `;
     }).join('')}
       </tbody>
     </table>
-    <p>Total: $${total}</p>
-  `
+    <p><b>Total:</b> $${calculateTotal(data, additionalProductFields)}</p>
+  `;
 
-    // Crea una ventana emergente con la tabla
-    const printWindow = window.open('', '', 'width=600,height=600')
-    printWindow.document.open()
+    // Crear una ventana emergente con la tabla
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.open();
     printWindow.document.write(`
     <html>
       <head>
         <title>Orden de Venta</title>
-        </head>
-        <body>
-        ${table}
+      </head>
+      <body>
+        ${tableHeader}
+        ${tableBody}
       </body>
     </html>
-  `)
-    printWindow.document.close()
-    printWindow.print()
-  }
+  `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  // FUNCION PARA CALCULAR EL TOTAL
+  const calculateTotal = (data, additionalProductFields) => {
+    let total = 0;
+    additionalProductFields.forEach((field) => {
+      const unitPrice = data[`unitPrice${field.id}`];
+      const amount = data[`amount${field.id}`];
+      total += unitPrice * amount;
+    });
+    return total;
+  };
+
+
 
 
   return (
     <>
       {/* MODAL */}
-      <Modal show={show} onHide={onHide} size="xl">
+      <Modal show={show} onHide={handleOnHideModal} size="xl">
         <Modal.Header closeButton className='modalHeader'>
           <Modal.Title className="modalTitle">
-            <strong>Agregar Nueva Venta</strong>
+            <strong>Nuevo Pedido</strong>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className='modalBody'>
@@ -365,6 +431,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                   onChange={(e) => setCurrentDate(e.target.value)}
                   {...register("date", { required: true })}
                   max={currentDate}
+                  readOnly
                 />
               </Form.Group>
               <Form.Group className="formFields my-2 px-2 col-10 col-md-4" controlId="formBasicClient">
@@ -404,7 +471,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                           ...prevData,
                           [field.id]: { ...prevData[field.id], product: newValue },
                         }))
-                        handleProductChange(e, field.id) // Llama a handleProductChange cuando cambia la variedad
+                        handleProductChange(e, field.id)
                       }}
                     >
                       <option value="">Selecciona un producto</option>
@@ -455,7 +522,9 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                       onChange={(e) => handleAmountDescriptionChange(e, field.id)}
                     >
                       <option value="docena">Docena</option>
-                      <option value="unidad">Unidad</option>
+                      {typeValue === 'minorista' && (
+                        <option value="unidad">Unidad</option>
+                      )}
                     </Form.Select>
                   </Form.Group>
                   <Form.Group className="formFields my-2 px-2 col-2" controlId={`formBasicStatus${field.id}`}>
@@ -493,7 +562,6 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                   <Button className='buttonsFormAddSale my-2 col-1' variant="danger" type="button" onClick={() => handleRemoveProductField(field.id)} style={{ width: '40px', height: '40px' }}>
                     <FaTrashAlt />
                   </Button>
-
                   <h6>Subtotal: ${subtotals[field.id]}</h6>
                 </div>
               ))}
@@ -504,9 +572,9 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
             <h4>Total: ${total}</h4>
             <Modal.Footer className="mt-3 col-12">
               <Button className='buttonsFormAddSale m-2 w-100' variant="secondary" type="submit">
-                Agregar Venta
+                Agregar Pedido
               </Button>
-              <Button className='buttonsFormAddSale m-2 w-100' variant="secondary" onClick={onHide}>
+              <Button className='buttonsFormAddSale m-2 w-100' variant="secondary" onClick={handleOnHideModal}>
                 Cancelar
               </Button>
             </Modal.Footer>

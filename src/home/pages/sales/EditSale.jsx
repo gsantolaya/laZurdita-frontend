@@ -45,6 +45,24 @@ export const EditSale = ({ show, onHide, fetchSales, selectedSale }) => {
 
   // FUNCION PARA MODIFICAR UN PRODUCTO
   const handleEditSaleFormSubmit = async (formData) => {
+    const clientId = selectedSale.client
+    const clientResponse = await axios.get(`/clients/${clientId}`, {
+      headers: {
+        "access-token": store.token,
+      },
+    });
+
+    const clientData = clientResponse.data
+
+    // Calculate the new balance
+    const unitPrice = selectedSale.unitPrice;
+    const amount = selectedSale.amount;
+    const lastPayment = selectedSale.payment
+    const newPayment = formData.payment;
+    // const tip = formData.tip || 0; // Default to 0 if no tip provided
+    const previousBalance = clientData.balance;
+    const newBalance = previousBalance + (unitPrice * amount) - lastPayment - newPayment
+
     try {
       const updatedSale = {
         firstName: selectedSale.firstName,
@@ -70,6 +88,14 @@ export const EditSale = ({ show, onHide, fetchSales, selectedSale }) => {
       }
 
       await axios.put(`/sales/${selectedSale._id}`, updatedSale, config)
+
+      // Update the client's balance
+      const balanceUpdateConfig = {
+        headers: {
+          "access-token": store.token,
+        },
+      };
+      await axios.patch(`/clients/${clientId}/balance`, { balance: newBalance }, balanceUpdateConfig);
 
       onHide()
       setShowEditSaleConfirmationToast(true)

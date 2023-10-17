@@ -54,7 +54,7 @@ export const AddClient = ({ show, onHide, fetchClients }) => {
       <Modal show={show} onHide={onHide}>
         <Modal.Header closeButton className='modalHeader'>
           <Modal.Title className="modalTitle">
-            <strong>Agregar Nuevo Cliente</strong>
+            <strong>Nuevo Cliente</strong>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className='modalBody'>

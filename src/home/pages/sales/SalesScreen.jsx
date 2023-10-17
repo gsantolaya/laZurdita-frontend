@@ -8,7 +8,7 @@ import Form from 'react-bootstrap/Form'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
-import { BsSearch } from "react-icons/bs"
+import { BsSearch, BsPrinterFill } from "react-icons/bs"
 import "./SalesScreen.css"
 import { AddSale } from './AddSale'
 import { DeleteSale } from './DeleteSale'
@@ -36,8 +36,8 @@ export const SalesScreen = () => {
   const store = TokenStorage()
   const navigate = useNavigate()
 
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   //Funcion para convertir fecha a la zona horaria local
   function formatDate(dateString) {
@@ -206,33 +206,133 @@ export const SalesScreen = () => {
   useEffect(() => {
     // Obtén la fecha actual
     const currentDate = new Date();
-  
+
     // Establece startDate como el día 15 del mes anterior
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 15);
     const currentDay = currentDate.getDate();
-  
+
     // Verifica si el día actual es igual o posterior al 15 del mes actual
     if (currentDay >= 15) {
       startDate.setMonth(currentDate.getMonth());
     }
-  
+
     // Establece endDate como el día 14 del mes en curso o del mes siguiente
     const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 14);
-  
+
     // Verifica si el día actual es igual o posterior al 14 del mes actual
     if (currentDay >= 14) {
       endDate.setMonth(currentDate.getMonth() + 1);
     }
-  
+
     // Formatea las fechas en formato ISO (yyyy-MM-dd) para establecerlas en los campos de entrada
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-  
+
     setStartDate(formattedStartDate);
     setEndDate(formattedEndDate);
   }, []);
-  
 
+  //FUNCION PARA IMPRIMIR LA TABLA
+  const handlePrintTable = () => {
+    const printWindow = window.open('', '', 'width=800,height=600')
+    printWindow.document.write('<html><head><title>Tabla de Ventas</title></head><body>')
+    printWindow.document.write('<h1>Ventas</h1>')
+    printWindow.document.write('<table border="1">')
+    printWindow.document.write('<thead><tr>')
+    printWindow.document.write('<th>Fecha</th>')
+    printWindow.document.write('<th>Vendedor</th>')
+    printWindow.document.write('<th>Cliente</th>')
+    printWindow.document.write('<th>Cantidad</th>')
+    printWindow.document.write('<th>Descripción</th>')
+    printWindow.document.write('<th>Estado</th>')
+    printWindow.document.write('<th>Precio Unitario</th>')
+    printWindow.document.write('<th>Total</th>')
+    printWindow.document.write('<th>Forma de pago</th>')
+    printWindow.document.write('<th>Pago a cuenta</th>')
+    printWindow.document.write('<th>Saldo</th>')
+    printWindow.document.write('<th>Propina</th>')
+    printWindow.document.write('</tr></thead><tbody>')
+
+    // Agrega los datos de los productos a la tabla de la ventana de impresión
+    filteredSales.slice().sort(compareSales).forEach((sale) => {
+      const product = products.find((product) => product._id === sale.product);
+      const client = clients.find((client) => client._id === sale.client);
+      const user = users.find((user) => user._id === sale.user);
+
+      printWindow.document.write('<tr>')
+      printWindow.document.write(`<td>${formatTableDate(formatDate(sale.date))}</td>`)
+      printWindow.document.write(`<td>${user ? `${user.lastName}, ${user.firstName}` : ''}</td>`)
+      printWindow.document.write(`<td>${client ? `${client.lastName}, ${client.firstName}` : ''}</td>`)
+      printWindow.document.write(`<td>${sale.amount}</td>`)
+      printWindow.document.write(`<td>${product ? `${product.type}` : ''}</td>`)
+      printWindow.document.write(`<td>${sale.productStatus}</td>`)
+      printWindow.document.write(`<td>${sale.unitPrice}</td>`)
+      printWindow.document.write(`<td>${sale.unitPrice * sale.amount}</td>`)
+      printWindow.document.write(`<td>${sale.wayToPay}</td>`)
+      printWindow.document.write(`<td>${sale.payment}</td>`)
+      printWindow.document.write(`<td>${sale.amount * sale.unitPrice - sale.payment}</td>`)
+      printWindow.document.write(`<td>${sale.tip || 0}</td>`)
+      printWindow.document.write('</tr>')
+    })
+
+    printWindow.document.write('</tbody></table>')
+    printWindow.document.write('</body></html>')
+
+    printWindow.document.close()
+    printWindow.print()
+    printWindow.close()
+  }
+
+//FUNCION PARA IMPRIMIR EL ARQUEO
+const handlePrintArqueo = () => {
+  const printWindow = window.open('', '', 'width=800,height=600')
+  printWindow.document.write('<html><head><title>Tabla de Ventas</title></head><body>')
+  printWindow.document.write('<h1>Ventas</h1>')
+  printWindow.document.write('<table border="1">')
+  printWindow.document.write('<thead><tr>')
+  printWindow.document.write('<th>Fecha</th>')
+  printWindow.document.write('<th>Vendedor</th>')
+  printWindow.document.write('<th>Cliente</th>')
+  printWindow.document.write('<th>Cantidad</th>')
+  printWindow.document.write('<th>Descripción</th>')
+  printWindow.document.write('<th>Estado</th>')
+  printWindow.document.write('<th>Precio Unitario</th>')
+  printWindow.document.write('<th>Total</th>')
+  printWindow.document.write('<th>Forma de pago</th>')
+  printWindow.document.write('<th>Pago a cuenta</th>')
+  printWindow.document.write('<th>Saldo</th>')
+  printWindow.document.write('<th>Propina</th>')
+  printWindow.document.write('</tr></thead><tbody>')
+
+  // Agrega los datos de los productos a la tabla de la ventana de impresión
+  filteredSales.slice().sort(compareSales).forEach((sale) => {
+    const product = products.find((product) => product._id === sale.product);
+    const client = clients.find((client) => client._id === sale.client);
+    const user = users.find((user) => user._id === sale.user);
+
+    printWindow.document.write('<tr>')
+    printWindow.document.write(`<td>${formatTableDate(formatDate(sale.date))}</td>`)
+    printWindow.document.write(`<td>${user ? `${user.lastName}, ${user.firstName}` : ''}</td>`)
+    printWindow.document.write(`<td>${client ? `${client.lastName}, ${client.firstName}` : ''}</td>`)
+    printWindow.document.write(`<td>${sale.amount}</td>`)
+    printWindow.document.write(`<td>${product ? `${product.type}` : ''}</td>`)
+    printWindow.document.write(`<td>${sale.productStatus}</td>`)
+    printWindow.document.write(`<td>${sale.unitPrice}</td>`)
+    printWindow.document.write(`<td>${sale.unitPrice * sale.amount}</td>`)
+    printWindow.document.write(`<td>${sale.wayToPay}</td>`)
+    printWindow.document.write(`<td>${sale.payment}</td>`)
+    printWindow.document.write(`<td>${sale.amount * sale.unitPrice - sale.payment}</td>`)
+    printWindow.document.write(`<td>${sale.tip || 0}</td>`)
+    printWindow.document.write('</tr>')
+  })
+
+  printWindow.document.write('</tbody></table>')
+  printWindow.document.write('</body></html>')
+
+  printWindow.document.close()
+  printWindow.print()
+  printWindow.close()
+}
   return (
     <>
       <div className='text-center p-5'>
@@ -306,7 +406,13 @@ export const SalesScreen = () => {
                 <th className='homeText text-center align-middle saleTitle'>Saldo</th>
                 <th className='homeText text-center align-middle saleTitle'>Estado</th>
                 <th className='homeText text-center align-middle saleTitle'>Propina</th>
-                <th></th>
+                <th>
+                  <Button className='m-1' variant="secondary" onClick={handlePrintTable}>
+                    <span className="d-flex align-items-center justify-content-center">
+                      <BsPrinterFill />
+                    </span>
+                  </Button>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -340,7 +446,7 @@ export const SalesScreen = () => {
                     </td>
                     <td className="text-center align-middle">${sale.tip || 0}</td>
                     <td className="text-center align-middle">
-                      <Button className='m-1 editButton' onClick={() => handleShowEditSaleModal(sale)} variant="secondary">
+                      <Button className='m-1 editButton' onClick={() => handleShowEditSaleModal(sale)} variant="">
                         <span className="d-flex align-items-center justify-content-center">
                           <FaEdit />
                         </span>
@@ -360,7 +466,10 @@ export const SalesScreen = () => {
         <AddSale show={showAddSaleModal} onHide={handleCloseAddSaleModal} fetchSales={fetchSales} />
         <DeleteSale show={showDeleteSaleModal} onHide={handleCloseDeleteSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
         <EditSale show={showEditSaleModal} onHide={handleCloseEditSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
-        <h1 className='mx-5 productTitle'><b>Arqueo</b></h1>
+        <div className='d-flex justify-content-between mt-5'>
+          <h1 className='mx-5 productTitle'><b>Arqueo</b></h1>
+          <Button className='m-1' variant="secondary" onClick={handlePrintArqueo}>Imprimir Arqueo  <BsPrinterFill /></Button>
+        </div>
         <div className='table-container mt-4'>
           <Table striped bordered hover>
             <thead>

@@ -9,7 +9,7 @@ import Nav from 'react-bootstrap/Nav'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
-import { BsSearch } from "react-icons/bs"
+import { BsSearch, BsPrinterFill } from "react-icons/bs"
 import { AddClient } from './AddClient'
 import { DeleteClient } from './DeleteClient'
 import { EditClient } from './EditClient'
@@ -136,6 +136,40 @@ export const ClientsScreen = () => {
       console.error(error)
     }
   }
+
+  //FUNCION PARA IMPRIMIR LA TABLA
+  const handlePrintTable = () => {
+    const printWindow = window.open('', '', 'width=800,height=600')
+    printWindow.document.write('<html><head><title>Tabla de Clientes</title></head><body>')
+    printWindow.document.write('<h1>Nuestros Clientes</h1>')
+    printWindow.document.write('<table border="1">')
+    printWindow.document.write('<thead><tr>')
+    printWindow.document.write('<th>Nombre</th>')
+    printWindow.document.write('<th>Teléfono</th>')
+    printWindow.document.write('<th>Dirección</th>')
+    printWindow.document.write('<th>Categoría</th>')
+    printWindow.document.write('<th>Estado de pago</th>')
+    printWindow.document.write('</tr></thead><tbody>')
+
+    // Agrega los datos de los productos a la tabla de la ventana de impresión
+    filteredClients.slice().sort(compareClients).forEach((client) => {
+      printWindow.document.write('<tr>')
+      printWindow.document.write(`<td>${client.lastName}, ${client.firstName}</td>`)
+      printWindow.document.write(`<td>${client.phone}</td>`)
+      printWindow.document.write(`<td>${client.address}</td>`)
+      printWindow.document.write(`<td>${client.category}</td>`)
+      printWindow.document.write(`<td>${client.isPaymentUpToDate ? 'Al día' : 'Pendiente'}</td>`)
+      printWindow.document.write('</tr>')
+    })
+
+    printWindow.document.write('</tbody></table>')
+    printWindow.document.write('</body></html>')
+
+    printWindow.document.close()
+    printWindow.print()
+    printWindow.close()
+  }
+
   return (
     <>
       <div className='text-center p-5'>
@@ -149,7 +183,7 @@ export const ClientsScreen = () => {
               <Form.Control
                 maxLength={30}
                 type="text"
-                placeholder="Buscar paciente"
+                placeholder="Buscar cliente"
                 value={searchTerm}
                 onChange={handleSearchInputChange}
               />
@@ -185,28 +219,34 @@ export const ClientsScreen = () => {
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className='homeText text-center align-middle align-middle clientTitle'>ID</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Nombre</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Teléfono</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Dirección</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Categoría</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Debe</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Estado de pago</th>
-                <th></th>
+                <th>
+                  <Button className='m-1' variant="secondary" onClick={handlePrintTable}>
+                    <span className="d-flex align-items-center justify-content-center">
+                      <BsPrinterFill />
+                    </span>
+                  </Button>
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredClients.slice().sort(compareClients).map((client) => (
                 <tr key={client._id}>
-                  <td className="text-center align-middle">{client._id}</td>
                   <td className="text-center align-middle">{client.lastName}, {client.firstName}</td>
                   <td className="text-center align-middle">{client.phone}</td>
                   <td className="text-center align-middle">{client.address}</td>
                   <td className="text-center align-middle">{client.category}</td>
-                  <td className="text-center align-middle" style={{ color: client.isPaymentUpToDate ? 'green' : 'red' }}>
-                    {client.isPaymentUpToDate ? 'Al día' : 'Pendiente'}
-                  </td>
+                  <td className="text-center align-middle">${client.balance}</td>
+                  <td className={`text-center align-middle ${client.balance > 0 ? 'red-text' : (client.balance === 0 ? 'green-text' : 'blue-text')}`}>
+                      {client.balance > 0 ? 'Saldo pendiente' : (client.balance === 0 ? 'Saldado' : 'Saldo a favor')}
+                    </td>
                   <td className="text-center align-middle">
-                    <Button className='m-1 editButton' onClick={() => handleShowEditClientModal(client)} variant="secondary">
+                    <Button className='m-1 editButton' onClick={() => handleShowEditClientModal(client)} variant="">
                       <span className="d-flex align-items-center justify-content-center">
                         <FaEdit />
                       </span>

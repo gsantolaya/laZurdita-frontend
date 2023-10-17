@@ -116,7 +116,7 @@ export const AddProduct = ({ show, onHide, fetchProducts }) => {
                         </Form.Group>
                         <Modal.Footer className="mt-3 col-12">
                             <Button className='buttonsFormAddProduct m-2 w-100' variant="secondary" type="submit">
-                                Agregar Producto
+                                Agregar Empanada
                             </Button>
                             <Button className='buttonsFormAddProduct m-2 w-100' variant="secondary" onClick={onHide}>
                                 Cancelar

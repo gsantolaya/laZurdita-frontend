@@ -5,12 +5,10 @@ import Table from 'react-bootstrap/Table'
 import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import Nav from 'react-bootstrap/Nav'
 import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
-import { BsSearch } from "react-icons/bs"
-import "./ExpensesScreen.css"
+import { BsSearch, BsPrinterFill } from "react-icons/bs"
 import { AddExpense } from './AddExpense'
 import { DeleteExpense } from './DeleteExpense'
 import { EditExpense } from './EditExpense'
@@ -20,16 +18,44 @@ export const ExpensesScreen = () => {
 
   //DECLARACION DE CONSTANTES
   const [expenses, setExpenses] = useState([])
+  const [products, setProducts] = useState([])
+  const [clients, setClients] = useState([])
+  const [users, setUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [orderOption, setOrderOption] = useState('name')
+
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false)
   const handleCloseAddExpenseModal = () => setShowAddExpenseModal(false)
+
   const [showDeleteExpenseModal, setShowDeleteExpenseModal] = useState(false)
+
   const [showEditExpenseModal, setShowEditExpenseModal] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState(null)
+
   const store = TokenStorage()
   const navigate = useNavigate()
 
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  //Funcion para convertir fecha a la zona horaria local
+  function formatDate(dateString) {
+    const utcDate = new Date(dateString);
+    const year = utcDate.getUTCFullYear();
+    const month = (utcDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = utcDate.getUTCDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function formatTableDate(inputDate) {
+    const parts = inputDate.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
+    } else {
+      return inputDate; // Devuelve la fecha original si no está en el formato esperado
+    }
+  }
 
   useEffect(() => {
     if (store.tokenValid) {
@@ -44,13 +70,46 @@ export const ExpensesScreen = () => {
         .catch((error) => {
           console.error(error)
         })
+      axios.get('/products', {
+        headers: {
+          "access-token": store.token
+        }
+      })
+        .then((response) => {
+          setProducts(response.data)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+      axios.get('/clients', {
+        headers: {
+          "access-token": store.token
+        }
+      })
+        .then((response) => {
+          setClients(response.data)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+      axios.get('/users', {
+        headers: {
+          "access-token": store.token
+        }
+      })
+        .then((response) => {
+          setUsers(response.data)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
     } else {
       navigate("/login")
     }
   }, [navigate, store.token, store.tokenValid])
 
 
-  //MANEJO PARA ELIMINAR GASTO
+  //MANEJO PARA ELIMINAR PRODUCTO
   const handleShowDeletExpenseModal = (expense) => {
     setSelectedExpense(expense)
     setShowDeleteExpenseModal(true)
@@ -69,20 +128,25 @@ export const ExpensesScreen = () => {
     setShowEditExpenseModal(false)
   }
 
-  const handleOrderOptionChange = (event) => {
-    setOrderOption(event.target.value)
-  }
-  const handleSearchInputChange = (event) => {
-    setSearchTerm(event.target.value)
-  }
+  // const handleOrderOptionChange = (event) => {
+  //   setOrderOption(event.target.value)
+  // }
+  // const handleSearchInputChange = (event) => {
+  //   setSearchTerm(event.target.value)
+  // }
 
-  //FUNCION PARA FILTRAR GASTOS
+  //FUNCION PARA FILTRAR LAS VENTAS
   const filteredExpenses = expenses.filter((expense) => {
-    const expenseDate = expense.date.toLowerCase()
-    return expenseDate.includes(searchTerm.toLowerCase())
-  })
+    const expenseDate = expense.date.toLowerCase();
 
-  //FUNCION PARA ORDENAR LOS GASTOS POR..
+    // Comprueba si la fecha está dentro del rango seleccionado
+    const isWithinDateRange = (!startDate || expenseDate >= startDate) && (!endDate || expenseDate <= endDate);
+
+    return isWithinDateRange
+  });
+
+
+  //FUNCION PARA ORDENAR LAS VENTAS
   function compareExpenses(a, b) {
     if (orderOption === 'Variedad ↓') {
       return a.type.localeCompare(b.type)
@@ -109,21 +173,160 @@ export const ExpensesScreen = () => {
     }
   }
 
-  //Funcion para convertir fecha a la zona horaria local
-  function formatDate(dateString) {
-    const utcDate = new Date(dateString);
-    const day = utcDate.getUTCDate();
-    const month = utcDate.getUTCMonth() + 1;
-    const year = utcDate.getUTCFullYear();
-    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+
+
+  //CALCULANDO TOTALES:
+  // Función para calcular la cantidad de ventas por tipo de pago
+  function calculateCountByWayToPay(wayToPay) {
+    const count = filteredExpenses.filter(expense => expense.wayToPay === wayToPay).length;
+    return count === 0 ? 0 : count;
+  }
+  // Función para calcular la suma de los valores de expense.payment por tipo de pago
+  function calculateSubtotalByWayToPay(wayToPay) {
+    const subtotal = filteredExpenses
+      .filter(expense => expense.wayToPay === wayToPay)
+      .reduce((total, expense) => total + expense.payment, 0);
+    return subtotal === 0 ? 0 : subtotal;
+  }
+  // Función para calcular el total de todos los valores expense.payment
+  function calculateSubtotal() {
+    return filteredExpenses.reduce((total, expense) => total + expense.payment, 0);
   }
 
+  //FILTRAR POR FECHAS 
+  useEffect(() => {
+    // Obtén la fecha actual
+    const currentDate = new Date();
+
+    // Establece startDate como el día 15 del mes anterior
+    const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 15);
+    const currentDay = currentDate.getDate();
+
+    // Verifica si el día actual es igual o posterior al 15 del mes actual
+    if (currentDay >= 15) {
+      startDate.setMonth(currentDate.getMonth());
+    }
+
+    // Establece endDate como el día 14 del mes en curso o del mes siguiente
+    const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 14);
+
+    // Verifica si el día actual es igual o posterior al 14 del mes actual
+    if (currentDay >= 14) {
+      endDate.setMonth(currentDate.getMonth() + 1);
+    }
+
+    // Formatea las fechas en formato ISO (yyyy-MM-dd) para establecerlas en los campos de entrada
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+
+    setStartDate(formattedStartDate);
+    setEndDate(formattedEndDate);
+  }, []);
+
+  //FUNCION PARA IMPRIMIR LA TABLA
+  const handlePrintTable = () => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write('<html><head><title>Tabla de Gastos</title></head><body>');
+    printWindow.document.write('<h1>Gastos</h1>');
+    printWindow.document.write('<table border="1">');
+    printWindow.document.write('<thead><tr>');
+    printWindow.document.write('<th>Fecha</th>');
+    printWindow.document.write('<th>Número de comprobante</th>');
+    printWindow.document.write('<th>Proveedor</th>');
+    printWindow.document.write('<th>Cantidad</th>');
+    printWindow.document.write('<th>Descripción</th>');
+    printWindow.document.write('<th>Descripción adicional</th>');
+    printWindow.document.write('<th>Precio Unitario</th>');
+    printWindow.document.write('<th>Subtotal</th>');
+    printWindow.document.write('<th>Forma de pago</th>');
+    printWindow.document.write('<th>Pago a cuenta</th>');
+    printWindow.document.write('<th>Saldo</th>');
+    printWindow.document.write('</tr></thead><tbody>');
+  
+    // Agrega los datos de los gastos a la tabla de la ventana de impresión
+    filteredExpenses.slice().sort(compareExpenses).forEach((expense) => {
+      printWindow.document.write('<tr>');
+      printWindow.document.write(`<td>${formatTableDate(formatDate(expense.date))}</td>`);
+      printWindow.document.write(`<td>${expense.voucherNumber}</td>`);
+      printWindow.document.write(`<td>${expense.provider}</td>`);
+      printWindow.document.write(`<td>${expense.amount}</td>`);
+      printWindow.document.write(`<td>${expense.description}</td>`);
+      printWindow.document.write(`<td>${expense.additionalDescription}</td>`);
+      printWindow.document.write(`<td>$${expense.unitPrice}</td>`);
+      printWindow.document.write(`<td>$${expense.unitPrice * expense.amount}</td>`);
+      printWindow.document.write(`<td>${expense.wayToPay}</td>`);
+      printWindow.document.write(`<td>$${expense.payment}</td>`);
+      printWindow.document.write(`<td>$${expense.payment ? expense.amount * expense.unitPrice - expense.payment : null}</td>`);
+      printWindow.document.write('</td>');
+      printWindow.document.write('</tr>');
+    });
+  
+    printWindow.document.write('</tbody></table>');
+    printWindow.document.write('</body></html>');
+  
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+  };
+  
+
+//FUNCION PARA IMPRIMIR EL ARQUEO
+const handlePrintArqueo = () => {
+  const printWindow = window.open('', '', 'width=800,height=600')
+  printWindow.document.write('<html><head><title>Total Gastos</title></head><body>')
+  printWindow.document.write('<h1>Gastos</h1>')
+  printWindow.document.write('<table border="1">')
+  printWindow.document.write('<thead><tr>')
+  printWindow.document.write('<th>Fecha</th>')
+
+  printWindow.document.write('</tr></thead><tbody>')
+
+  // Agrega los datos de los productos a la tabla de la ventana de impresión
+  filteredExpenses.slice().sort(compareExpenses).forEach((expense) => {
+    printWindow.document.write('<tr>')
+    printWindow.document.write(`<td>${formatTableDate(formatDate(expense.date))}</td>`)
+
+    printWindow.document.write('</tr>')
+  })
+
+  printWindow.document.write('</tbody></table>')
+  printWindow.document.write('</body></html>')
+
+  printWindow.document.close()
+  printWindow.print()
+  printWindow.close()
+}
   return (
     <>
       <div className='text-center p-5'>
-        <h1 className='mb-5 expenseTitle'><b>Listado de Gastos</b></h1>
+        <h1 className='mb-5 expenseTitle'><b>Gastos Realizados</b></h1>
         <div className='row d-md-flex'>
-          <div className='col-12 col-md-4 col-xl-3 my-2 my-md-0'>
+          <div className='col-2 my-2 my-md-0'>
+            <InputGroup>
+              <Form.Control
+                type="date"
+                placeholder="Fecha de inicio"
+                value={startDate}
+                onChange={(e) => {
+                  console.log('startDate:', e.target.value);
+                  setStartDate(formatDate(e.target.value));
+                }}
+              />
+            </InputGroup>
+          </div>
+          <div className='col-2 my-2 my-md-0'>
+            <InputGroup>
+              <Form.Control
+                type="date"
+                placeholder="Fecha de finalización"
+                value={endDate}
+                onChange={(e) => {
+                  console.log('endDate:', e.target.value);
+                  setEndDate(formatDate(e.target.value));
+                }} />
+            </InputGroup>
+          </div>
+          {/* <div className='col-3 my-2 my-md-0'>
             <InputGroup>
               <InputGroup.Text id="btnGroupAddon">
                 <BsSearch />
@@ -131,69 +334,77 @@ export const ExpensesScreen = () => {
               <Form.Control
                 maxLength={30}
                 type="text"
-                placeholder="Buscar gasto"
+                placeholder="Buscar venta"
                 value={searchTerm}
                 onChange={handleSearchInputChange}
               />
             </InputGroup>
-          </div>
-          <div className='col-12 col-xl-3 my-2 my-md-0'>
+          </div> */}
+          {/* <div className='col-3 my-md-0'>
             <Form.Group className='d-flex' controlId="orderOptionForm">
               <Form.Label className='w-50' column sm={2}><b className='homeText expenseTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
-                <option value="Variedad ↓">Variedad ↓</option>
-                <option value="Variedad ↑">Variedad ↑</option>
+                <option value="Variedad ↓">Fecha ↓</option>
+                <option value="Variedad ↑">Fecha ↑</option>
                 <option value="Stock ↓">Stock ↓</option>
                 <option value="Stock ↑">Stock ↑</option>
               </Form.Select>
             </Form.Group>
-          </div>
-          <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
-            <Nav.Link className="buttonAddExpense" onClick={() => setShowAddExpenseModal(true)}>Agregar Gasto</Nav.Link>
+          </div> */}
+                    <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
+            <Button variant='' className="buttonAddProduct" onClick={() => setShowAddExpenseModal(true)}>Agregar Gasto</Button>
           </div>
         </div>
-
         <div className='table-container mt-4' >
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th className='homeText text-center align-middle expenseTitle'>ID</th>
                 <th className='homeText text-center align-middle expenseTitle'>Fecha</th>
                 <th className='homeText text-center align-middle expenseTitle'>Número de comprobante</th>
                 <th className='homeText text-center align-middle expenseTitle'>Proveedor</th>
                 <th className='homeText text-center align-middle expenseTitle'>Cantidad</th>
                 <th className='homeText text-center align-middle expenseTitle'>Descripción</th>
                 <th className='homeText text-center align-middle expenseTitle'>Descripción adicional</th>
-                <th className='homeText text-center align-middle expenseTitle'>Precio unitario</th>
+                <th className='homeText text-center align-middle expenseTitle'>Precio Unitario</th>
                 <th className='homeText text-center align-middle expenseTitle'>Subtotal</th>
                 <th className='homeText text-center align-middle expenseTitle'>Forma de pago</th>
                 <th className='homeText text-center align-middle expenseTitle'>Pago a cuenta</th>
                 <th className='homeText text-center align-middle expenseTitle'>Saldo</th>
                 <th className='homeText text-center align-middle expenseTitle'>Estado</th>
-                <th></th>
+                <th>
+                  <Button className='m-1' variant="secondary" onClick={handlePrintTable}>
+                    <span className="d-flex align-items-center justify-content-center">
+                      <BsPrinterFill />
+                    </span>
+                  </Button>
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredExpenses.slice().sort(compareExpenses).map((expense) => {
+                // const product = products.find((product) => product._id === expense.product);
+                // const client = clients.find((client) => client._id === expense.client);
+                // const user = users.find((user) => user._id === expense.user);
                 return (
                   <tr key={expense._id}>
-                    <td className="text-center align-middle">{expense._id}</td>
-                    <td className="text-center align-middle">{formatDate(expense.date)}</td>
+                    <td className="text-center align-middle">{formatTableDate(formatDate(expense.date))}</td>
                     <td className="text-center align-middle">{expense.voucherNumber}</td>
                     <td className="text-center align-middle">{expense.provider}</td>
                     <td className="text-center align-middle">{expense.amount}</td>
                     <td className="text-center align-middle">{expense.description}</td>
                     <td className="text-center align-middle">{expense.additionalDescription}</td>
-                    <td className="text-center align-middle">{expense.unitPrice}</td>
-                    <td className="text-center align-middle">{expense.unitPrice * expense.amount}</td>
+                    <td className="text-center align-middle">${expense.unitPrice}</td>
+                    <td className="text-center align-middle">${expense.unitPrice * expense.amount}</td>
                     <td className="text-center align-middle">{expense.wayToPay}</td>
-                    <td className="text-center align-middle">{expense.payment}</td>
-                    <td className="text-center align-middle">{expense.amount * expense.unitPrice - expense.payment}</td>
+                    <td className="text-center align-middle">${expense.payment}</td>
+                    <td className="text-center align-middle">
+                      ${expense.payment ? expense.amount * expense.unitPrice - expense.payment : null}
+                    </td>
                     <td className={`text-center align-middle ${expense.amount * expense.unitPrice - expense.payment > 0 ? 'red-text' : (expense.amount * expense.unitPrice - expense.payment === 0 ? 'green-text' : 'blue-text')}`}>
                       {expense.amount * expense.unitPrice - expense.payment > 0 ? 'Saldo pendiente' : (expense.amount * expense.unitPrice - expense.payment === 0 ? 'Saldado' : 'Saldo a favor')}
                     </td>
                     <td className="text-center align-middle">
-                      <Button className='m-1 editButton' onClick={() => handleShowEditExpenseModal(expense)} variant="secondary">
+                      <Button className='m-1 editButton' onClick={() => handleShowEditExpenseModal(expense)} variant="">
                         <span className="d-flex align-items-center justify-content-center">
                           <FaEdit />
                         </span>
@@ -210,10 +421,46 @@ export const ExpensesScreen = () => {
             </tbody>
           </Table>
         </div>
+        <AddExpense show={showAddExpenseModal} onHide={handleCloseAddExpenseModal} fetchExpenses={fetchExpenses} />
+        <DeleteExpense show={showDeleteExpenseModal} onHide={handleCloseDeleteExpenseModal} fetchExpenses={fetchExpenses} selectedExpense={selectedExpense} />
+        <EditExpense show={showEditExpenseModal} onHide={handleCloseEditExpenseModal} fetchExpenses={fetchExpenses} selectedExpense={selectedExpense} />
+        <div className='d-flex justify-content-between mt-5'>
+          <h1 className='mx-5 productTitle'><b>Arqueo</b></h1>
+          <Button className='m-1' variant="secondary" onClick={handlePrintArqueo}>Imprimir Arqueo  <BsPrinterFill /></Button>
+        </div>
+        <div className='table-container mt-4'>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th className='homeText text-center align-middle expenseTitle'></th>
+                <th className='homeText text-center align-middle expenseTitle'>Cantidad</th>
+                <th className='homeText text-center align-middle expenseTitle'>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Efectivo</td>
+                <td>{calculateCountByWayToPay("efectivo")}</td>
+                <td>${calculateSubtotalByWayToPay("efectivo")}</td>
+              </tr>
+              <tr>
+                <td>Mercado Pago</td>
+                <td>{calculateCountByWayToPay("mercadoPago")}</td>
+                <td>${calculateSubtotalByWayToPay("mercadoPago")}</td>
+              </tr>
+              <tr>
+                <td>Transferencias</td>
+                <td>{calculateCountByWayToPay("transferencia")}</td>
+                <td>${calculateSubtotalByWayToPay("transferencia")}</td>
+              </tr>
+              <tr>
+                <td colSpan={2}><b>TOTAL</b></td>
+                <td><b>${calculateSubtotal()}</b></td>
+              </tr>
+            </tbody>
+          </Table>
+        </div>
       </div>
-      <AddExpense show={showAddExpenseModal} onHide={handleCloseAddExpenseModal} fetchExpenses={fetchExpenses} />
-      <DeleteExpense show={showDeleteExpenseModal} onHide={handleCloseDeleteExpenseModal} fetchExpenses={fetchExpenses} selectedExpense={selectedExpense} />
-      <EditExpense show={showEditExpenseModal} onHide={handleCloseEditExpenseModal} fetchExpenses={fetchExpenses} selectedExpense={selectedExpense} />
     </>
   )
 }

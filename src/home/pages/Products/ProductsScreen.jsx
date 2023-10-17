@@ -175,9 +175,6 @@ export const ProductsScreen = () => {
               </Form.Select>
             </Form.Group>
           </div>
-          <div className='col-12 col-xl-3 my-2 my-md-0'>
-            <Button variant="secondary" onClick={handlePrintTable}>Imprimir tabla en pantalla <BsPrinterFill /></Button>
-          </div>
           <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
             <Button variant='' className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Empanada</Button>
           </div>
@@ -191,7 +188,13 @@ export const ProductsScreen = () => {
                 <th className='homeText text-center align-middle productTitle'>Precio Minorista</th>
                 <th className='homeText text-center align-middle productTitle'>Precio Mayorista</th>
                 <th className='homeText text-center align-middle productTitle'>Stock</th>
-                <th></th>
+                <th>
+                  <Button className='m-1' variant="secondary" onClick={handlePrintTable}>
+                    <span className="d-flex align-items-center justify-content-center">
+                      <BsPrinterFill />
+                    </span>
+                  </Button>
+                </th>
               </tr>
             </thead>
             <tbody>

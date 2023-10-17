@@ -25,6 +25,26 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
     // FUNCION PARA MODIFICAR UN PRODUCTO
     const handleFinishOrderFormSubmit = async (formData) => {
         try {
+            const clientId = selectedSale.client
+    
+            // Fetch the client's data to get the previous balance
+            const clientResponse = await axios.get(`/clients/${clientId}`, {
+                headers: {
+                    "access-token": store.token,
+                },
+            });
+    
+            const clientData = clientResponse.data;
+    
+            // Calculate the new balance
+            const unitPrice = selectedSale.unitPrice;
+            const amount = selectedSale.amount;
+            const payment = formData.payment;
+            // const tip = formData.tip || 0; // Default to 0 if no tip provided
+            const previousBalance = clientData.balance;
+            const newBalance = previousBalance + (unitPrice * amount) - payment
+    
+            // Update the sale
             const updatedSale = {
                 user: selectedSale.user,
                 date: selectedSale.date,
@@ -37,24 +57,33 @@ export const FinishOrder = ({ show, onHide, fetchSales, selectedSale }) => {
                 unitPrice: selectedSale.unitPrice,
                 wayToPay: formData.wayToPay,
                 payment: formData.payment,
-                tip: formData.tip || '',
+                tip: formData.tip || 0,
                 status: "completed"
             }
-
-            const config = {
+    
+            // Update the sale using axios
+            const saleUpdateConfig = {
                 headers: {
                     "access-token": store.token,
                 },
-            }
-            await axios.put(`/sales/${selectedSale._id}`, updatedSale, config)
-            console.log(updatedSale)
-            onHide()
-            setShowEditSaleConfirmationToast(true)
-            reset()
-            fetchSales()
+            };
+            await axios.put(`/sales/${selectedSale._id}`, updatedSale, saleUpdateConfig);
+    
+            // Update the client's balance
+            const balanceUpdateConfig = {
+                headers: {
+                    "access-token": store.token,
+                },
+            };
+            await axios.patch(`/clients/${clientId}/balance`, { balance: newBalance }, balanceUpdateConfig);
+    
+            onHide();
+            setShowEditSaleConfirmationToast(true);
+            reset();
+            fetchSales();
         } catch (error) {
-            console.error("Error al actualizar finalizar el pedido:", error)
-            setShowEditSaleErrorToast(true)
+            console.error("Error al actualizar finalizar el pedido:", error);
+            setShowEditSaleErrorToast(true);
         }
     }
 
