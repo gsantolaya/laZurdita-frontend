@@ -11,7 +11,7 @@ import { tokenIsValid } from '../../../utils/TokenIsValid'
 import { useNavigate } from "react-router-dom"
 
 import InputGroup from "react-bootstrap/InputGroup"
-import { BsSearch, BsPrinterFill } from "react-icons/bs"
+import { BsPrinterFill } from "react-icons/bs"
 import { AddExpense } from './AddExpense'
 import { DeleteExpense } from './DeleteExpense'
 import { EditExpense } from './EditExpense'

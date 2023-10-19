@@ -423,7 +423,7 @@ export const SalesScreen = () => {
       <div className='text-center p-5'>
         <h1 className='mb-5 saleTitle'><b>Ventas Realizadas</b></h1>
         <div className='row d-md-flex'>
-          <div className='col-2'>
+          <div className='col-12 col-md-2'>
             <InputGroup>
               <Form.Control
                 type="date"
@@ -436,7 +436,7 @@ export const SalesScreen = () => {
               />
             </InputGroup>
           </div>
-          <div className='col-2'>
+          <div className='my-2 my-md-0 col-12 col-md-2'>
             <InputGroup>
               <Form.Control
                 type="date"
@@ -448,7 +448,7 @@ export const SalesScreen = () => {
                 }} />
             </InputGroup>
           </div>
-          <div className='col-3'>
+          <div className='my-2 my-md-0 col-12 col-md-3'>
             <InputGroup>
               <InputGroup.Text id="btnGroupAddon">
                 <BsSearch />
@@ -462,7 +462,7 @@ export const SalesScreen = () => {
               />
             </InputGroup>
           </div>
-          <div className='col-2'>
+          <div className='my-2 my-md-0 col-12 col-md-2'>
             <Form.Group className='d-flex' controlId="searchOptionForm">
               <Form.Label className='w-50' column sm={2}><b className='homeText clientTitle'>Buscar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={searchOption} onChange={handleSearchOptionChange}>
@@ -472,7 +472,7 @@ export const SalesScreen = () => {
               </Form.Select>
             </Form.Group>
           </div>
-          <div className='col-3'>
+          <div className='my-2 my-md-0 col-12 col-md-3'>
             <Form.Group className='d-flex' controlId="orderOptionForm">
               <Form.Label className='w-50' column sm={2}><b className='homeText saleTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>

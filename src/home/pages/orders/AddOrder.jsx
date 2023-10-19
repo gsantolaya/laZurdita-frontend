@@ -465,7 +465,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
               <h6>Productos:</h6>
               {additionalProductFields.map((field, index) => (
                 <div key={field.id} className='col-12 row my-2 align-items-center justify-content-between'>
-                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicDescription${field.id}`} onChange={handleProductChange}>
+                  <Form.Group className="formFields my-2 px-2 col-12 col-md-3" controlId={`formBasicDescription${field.id}`} onChange={handleProductChange}>
                     <Form.Label>Variedad:</Form.Label>
                     <Form.Select
                       as="select"
@@ -490,7 +490,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                     </Form.Select>
                   </Form.Group>
 
-                  <Form.Group className="formFields my-2 px-2 col-1" controlId={`formBasicAmount${field.id}`}>
+                  <Form.Group className="formFields my-2 px-2 col-12 col-md-1" controlId={`formBasicAmount${field.id}`}>
                     <Form.Label>Cantidad</Form.Label>
                     <Form.Control
                       type="number"
@@ -518,7 +518,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                       <span className="authSpan">Debe ser un número positivo</span>
                     )}
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-3" controlId={`formBasicAmountDescription${field.id}`}>
+                  <Form.Group className="formFields my-2 px-2 col-12 col-md-3" controlId={`formBasicAmountDescription${field.id}`}>
                     <Form.Label>Descripción Cantidad:</Form.Label>
                     <Form.Select
                       as="select"
@@ -534,7 +534,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                       )}
                     </Form.Select>
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-2" controlId={`formBasicStatus${field.id}`}>
+                  <Form.Group className="formFields my-2 px-2 col-12 col-md-2" controlId={`formBasicStatus${field.id}`}>
                     <Form.Label>Descripción Adicional:</Form.Label>
                     <Form.Select as="select" name={`productStatus${field.id}`} {...register(`productStatus${field.id}`, { required: true })}>
                       <option value="">Seleccione una opción</option>
@@ -542,7 +542,7 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
                       <option value="congeladas">Congeladas</option>
                     </Form.Select>
                   </Form.Group>
-                  <Form.Group className="formFields my-2 px-2 col-2" controlId={`formBasicPayment${field.id}`}>
+                  <Form.Group className="formFields my-2 px-2 col-12 col-md-2" controlId={`formBasicPayment${field.id}`}>
                     <Form.Label>Precio unitario</Form.Label>
                     <Form.Control
                       type="number"
