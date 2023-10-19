@@ -236,7 +236,7 @@ export const UsersScreen = () => {
                   <tr key={user._id}>
                     <td className={`py-4 ${userClass}`}>{user.email}</td>
                     <td className={`py-4 ${userClass}`}>{user.lastName} {user.firstName}</td>
-                    <td className={`py-4 ${userClass}`}>{user.isAdmin ? 'Administrador' : 'Estudiante'}</td>
+                    <td className={`py-4 ${userClass}`}>{user.isAdmin ? 'Administrador' : 'Usuario'}</td>
                     <td className='pt-3'>
                       <Button className='m-1' variant="secondary" onClick={() => handleShowEditPassword(user)}>Modificar contraseña</Button>
                       <Button className='m-1' onClick={() => handleShowEditMyUserModal(user)} variant="dark"><FaEdit /></Button>

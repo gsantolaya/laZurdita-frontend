@@ -6,7 +6,7 @@ import { Modal, Toast, Form, Button } from 'react-bootstrap'
 import ToastContainer from 'react-bootstrap/ToastContainer'
 import { TokenStorage } from '../../../utils/TokenStorage'
 import { tokenIsValid } from '../../../utils/TokenIsValid'
-
+import logoNavbar from '../../components/img/Imagen_de_WhatsApp_2023-10-02_a_las_15.55.47_72f6c6c6-removebg-preview.png'
 export const AddOrder = ({ show, onHide, fetchSales }) => {
 
   const { handleSubmit, register, reset, formState: { errors }, setValue, watch } = useForm()
@@ -331,25 +331,32 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
     const clientFullName = selectedClient ? `${selectedClient.firstName} ${selectedClient.lastName}` : 'Cliente Desconocido';
 
     const tableHeader = `
-    <h1><b>La Zurdita</b></h1>
-    <h3><b>Fecha:</b> ${data.date}</h3>
-    <h3><b>Cliente:</b> ${clientFullName}</h3>
-  `;
+    <div style="display: flex; justify-content: space-between;">
+        <div>
+          <img src="${logoNavbar}" alt="Logo" style="width: 400px; margin-bottom: 20px;">
+          <p style="font-size: 16px;"><b>Teléfono:</b> 3815932845</p>
+        </div>
+        <div>
+          <h3><b>Fecha:</b> ${data.date}</h3>
+          <h3><b>Cliente:</b> ${clientFullName}</h3>
+        </div>
+      </div>
+    `;
 
     const tableBody = `
-    <table style="border-collapse: collapse; width: 100%;">
-      <thead>
-        <tr>
-          <th style="border: 1px solid #000; padding: 5px;">Producto</th>
-          <th style="border: 1px solid #000; padding: 5px;">Cantidad</th>
-          <th style="border: 1px solid #000; padding: 5px;">Descripción Cantidad</th>
-          <th style="border: 1px solid #000; padding: 5px;">Estado del Producto</th>
-          <th style="border: 1px solid #000; padding: 5px;">Precio Unitario</th>
-          <th style="border: 1px solid #000; padding: 5px;">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${additionalProductFields.map((field, index) => {
+      <table style="border-collapse: collapse; width: 100%; margin-top: 20px;">
+        <thead>
+          <tr style="background-color: #f2f2f2; border: 1px solid #000; text-align: center;">
+            <th style="padding: 10px;">Producto</th>
+            <th style="padding: 10px;">Cantidad</th>
+            <th style="padding: 10px;">Descripción Cantidad</th>
+            <th style="padding: 10px;">Estado del Producto</th>
+            <th style="padding: 10px;">Precio Unitario</th>
+            <th style="padding: 10px;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${additionalProductFields.map((field, index) => {
       const selectedProductId = data[`product${field.id}`];
       const selectedProduct = products.find((product) => product._id === selectedProductId);
       const productType = selectedProduct ? selectedProduct.type : 'Producto Desconocido';
@@ -361,35 +368,35 @@ export const AddOrder = ({ show, onHide, fetchSales }) => {
       const subtotal = unitPrice * amount;
 
       return `
-            <tr key=${field.id}>            
-              <td style="border: 1px solid #000; padding: 5px;">${productType}</td>
-              <td style="border: 1px solid #000; padding: 5px;">${amount}</td>
-              <td style="border: 1px solid #000; padding: 5px;">${amountDescription}</td>
-              <td style="border: 1px solid #000; padding: 5px;">${productStatus}</td>
-              <td style="border: 1px solid #000; padding: 5px;">$${unitPrice}</td>
-              <td style="border: 1px solid #000; padding: 5px;">$${subtotal}</td>
-            </tr>
-          `;
+              <tr style="border: 1px solid #000; text-align: center;">
+                <td style="padding: 10px;">${productType}</td>
+                <td style="padding: 10px;">${amount}</td>
+                <td style="padding: 10px;">${amountDescription}</td>
+                <td style="padding: 10px;">${productStatus}</td>
+                <td style="padding: 10px;">$${unitPrice}</td>
+                <td style="padding: 10px;">$${subtotal}</td>
+              </tr>
+            `;
     }).join('')}
-      </tbody>
-    </table>
-    <p><b>Total:</b> $${calculateTotal(data, additionalProductFields)}</p>
-  `;
+        </tbody>
+      </table>
+      <p style="text-align: right; margin-top: 20px;"><b>Total:</b> $${calculateTotal(data, additionalProductFields)}</p>
+    `;
 
     // Crear una ventana emergente con la tabla
     const printWindow = window.open('', '', 'width=800,height=600');
     printWindow.document.open();
     printWindow.document.write(`
-    <html>
-      <head>
-        <title>Orden de Venta</title>
-      </head>
-      <body>
-        ${tableHeader}
-        ${tableBody}
-      </body>
-    </html>
-  `);
+      <html>
+        <head>
+          <title>Orden de Venta</title>
+        </head>
+        <body>
+          ${tableHeader}
+          ${tableBody}
+        </body>
+      </html>
+    `);
     printWindow.document.close();
     printWindow.print();
   };

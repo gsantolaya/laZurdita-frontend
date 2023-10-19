@@ -93,13 +93,10 @@ export const ClientsScreen = () => {
   //FUNCION PARA FILTRAR CLIENTES
   const filteredClients = clients.filter((client) => {
     const fullName = `${client.firstName} ${client.lastName}`.toLowerCase()
-    const patientId = client._id.toLowerCase()
-    const paymentStatus = client.isPaymentUpToDate ? 'al día' : 'pendiente'
+    const paymentStatus = (client.balance > 0 ? 'Saldo pendiente' : (client.balance === 0 ? 'Saldado' : 'Saldo a favor')).toLowerCase()
     switch (searchOption) {
       case 'name':
         return fullName.includes(searchTerm.toLowerCase())
-      case 'id':
-        return patientId.includes(searchTerm.toLowerCase())
       case 'payment':
         return paymentStatus.includes(searchTerm.toLowerCase())
       default:
@@ -109,21 +106,22 @@ export const ClientsScreen = () => {
 
   //FUNCION PARA ORDENAR CLIENTES
   function compareClients(a, b) {
-    const nameA = `${a.lastName} ${a.firstName}`
-    const nameB = `${b.lastName} ${b.firstName}`
-
-    if (orderOption === 'Apellido ↓') {
-      return nameB.localeCompare(nameA)
-    } else if (orderOption === 'Apellido ↑') {
-      return nameA.localeCompare(nameB)
-    } else if (orderOption === 'Nombre ↓') {
-      return a.firstName.localeCompare(b.firstName)
-    } else if (orderOption === 'Nombre ↑') {
-      return b.firstName.localeCompare(a.firstName)
-    } else {
-      return nameA.localeCompare(nameB)
+    const nameA = `${a.lastName} ${a.firstName}`;
+    const nameB = `${b.lastName} ${b.firstName}`;
+    switch (orderOption) {
+      case 'Apellido ↓':
+        return nameB.localeCompare(nameA);
+      case 'Apellido ↑':
+        return nameA.localeCompare(nameB);
+      case 'Saldo ↑':
+        return a.balance - b.balance;
+      case 'Saldo ↓':
+        return b.balance - a.balance;
+      default:
+        return nameA.localeCompare(nameB);
     }
   }
+  
   const fetchClients = async () => {
     try {
       const response = await axios.get('/clients', {
@@ -148,17 +146,28 @@ export const ClientsScreen = () => {
     printWindow.document.write('<th>Teléfono</th>')
     printWindow.document.write('<th>Dirección</th>')
     printWindow.document.write('<th>Categoría</th>')
+    printWindow.document.write('<th>Saldo (-)</th>')
     printWindow.document.write('<th>Estado de pago</th>')
     printWindow.document.write('</tr></thead><tbody>')
 
-    // Agrega los datos de los productos a la tabla de la ventana de impresión
     filteredClients.slice().sort(compareClients).forEach((client) => {
       printWindow.document.write('<tr>')
       printWindow.document.write(`<td>${client.lastName}, ${client.firstName}</td>`)
       printWindow.document.write(`<td>${client.phone}</td>`)
       printWindow.document.write(`<td>${client.address}</td>`)
       printWindow.document.write(`<td>${client.category}</td>`)
-      printWindow.document.write(`<td>${client.isPaymentUpToDate ? 'Al día' : 'Pendiente'}</td>`)
+      printWindow.document.write(`<td>$${client.balance}</td>`)
+      printWindow.document.write('<td class="text-center">')
+      if (client.balance > 0) {
+        printWindow.document.write('Saldo pendiente')
+      } else if (client.balance === 0) {
+        printWindow.document.write('Saldado')
+      } else {
+        printWindow.document.write('Saldo a favor')
+      }
+
+      printWindow.document.write('</td>')
+      printWindow.document.write('<td></td>')
       printWindow.document.write('</tr>')
     })
 
@@ -194,8 +203,7 @@ export const ClientsScreen = () => {
               <Form.Label className='w-50' column sm={2}><b className='homeText clientTitle'>Buscar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={searchOption} onChange={handleSearchOptionChange}>
                 <option value="name">Apellido/ nombre</option>
-                <option value="id">ID</option>
-                <option value="payment">Pagos</option>
+                <option value="payment">Estado de pago</option>
               </Form.Select>
             </Form.Group>
           </div>
@@ -205,8 +213,8 @@ export const ClientsScreen = () => {
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
                 <option value="Apellido ↑">Apellido ↑</option>
                 <option value="Apellido ↓">Apellido ↓</option>
-                <option value="Nombre ↑">Nombre ↑</option>
-                <option value="Nombre ↓">Nombre ↓</option>
+                <option value="Saldo ↑">Saldo ↑</option>
+                <option value="Saldo ↓">Saldo ↓</option>
               </Form.Select>
             </Form.Group>
           </div>
@@ -215,7 +223,7 @@ export const ClientsScreen = () => {
           </div>
         </div>
 
-        <div className='table-container mt-4' >
+        <div className='table-container mt-4 scrollable-x-table' >
           <Table striped bordered hover>
             <thead>
               <tr>
@@ -223,7 +231,7 @@ export const ClientsScreen = () => {
                 <th className='homeText text-center align-middle align-middle clientTitle'>Teléfono</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Dirección</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Categoría</th>
-                <th className='homeText text-center align-middle align-middle clientTitle'>Debe</th>
+                <th className='homeText text-center align-middle align-middle clientTitle'>Saldo (-)</th>
                 <th className='homeText text-center align-middle align-middle clientTitle'>Estado de pago</th>
                 <th>
                   <Button className='m-1' variant="secondary" onClick={handlePrintTable}>
@@ -243,8 +251,8 @@ export const ClientsScreen = () => {
                   <td className="text-center align-middle">{client.category}</td>
                   <td className="text-center align-middle">${client.balance}</td>
                   <td className={`text-center align-middle ${client.balance > 0 ? 'red-text' : (client.balance === 0 ? 'green-text' : 'blue-text')}`}>
-                      {client.balance > 0 ? 'Saldo pendiente' : (client.balance === 0 ? 'Saldado' : 'Saldo a favor')}
-                    </td>
+                    {client.balance > 0 ? 'Saldo pendiente' : (client.balance === 0 ? 'Saldado' : 'Saldo a favor')}
+                  </td>
                   <td className="text-center align-middle">
                     <Button className='m-1 editButton' onClick={() => handleShowEditClientModal(client)} variant="">
                       <span className="d-flex align-items-center justify-content-center">

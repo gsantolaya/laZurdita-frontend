@@ -9,10 +9,10 @@ import { TokenStorage } from "../../../utils/TokenStorage"
 import { useNavigate } from "react-router-dom"
 import InputGroup from "react-bootstrap/InputGroup"
 import { BsSearch, BsPrinterFill } from "react-icons/bs"
-import "./ProductsScreen.css"
 import { AddProduct } from './AddProduct'
 import { DeleteProduct } from './DeleteProduct'
 import { EditProduct } from './EditProduct'
+import "./ProductsScreen.css"
 
 //COMPONENTE
 export const ProductsScreen = () => {
@@ -87,13 +87,13 @@ export const ProductsScreen = () => {
 
   //FUNCION PARA ORDENAR LOS PRODUCTOS POR VARIEDAD O STOCK
   function compareProducts(a, b) {
-    if (orderOption === 'Variedad ↓') {
+    if (orderOption === 'Variedad ↑') {
       return a.type.localeCompare(b.type)
-    } else if (orderOption === 'Variedad ↑') {
+    } else if (orderOption === 'Variedad ↓') {
       return b.type.localeCompare(a.type)
-    } else if (orderOption === 'Stock ↓') {
-      return a.stock - b.stock
     } else if (orderOption === 'Stock ↑') {
+      return a.stock - b.stock
+    } else if (orderOption === 'Stock ↓') {
       return b.stock - a.stock
     }
     return 0
@@ -130,9 +130,9 @@ export const ProductsScreen = () => {
     filteredProducts.slice().sort(compareProducts).forEach((product) => {
       printWindow.document.write('<tr>')
       printWindow.document.write(`<td>${product.type}</td>`)
-      printWindow.document.write(`<td>${product.unitPrice}</td>`)
-      printWindow.document.write(`<td>${product.retailPrice}</td>`)
-      printWindow.document.write(`<td>${product.wholesalePrice}</td>`)
+      printWindow.document.write(`<td>$${product.unitPrice}</td>`)
+      printWindow.document.write(`<td>$${product.retailPrice}</td>`)
+      printWindow.document.write(`<td>$${product.wholesalePrice}</td>`)
       printWindow.document.write(`<td>${product.stock}</td>`)
       printWindow.document.write('</tr>')
     })
@@ -168,10 +168,10 @@ export const ProductsScreen = () => {
             <Form.Group className='d-flex' controlId="orderOptionForm">
               <Form.Label className='w-50' column sm={2}><b className='homeText productTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
-                <option value="Variedad ↓">Variedad ↓</option>
                 <option value="Variedad ↑">Variedad ↑</option>
-                <option value="Stock ↓">Stock ↓</option>
+                <option value="Variedad ↓">Variedad ↓</option>
                 <option value="Stock ↑">Stock ↑</option>
+                <option value="Stock ↓">Stock ↓</option>
               </Form.Select>
             </Form.Group>
           </div>
@@ -179,7 +179,7 @@ export const ProductsScreen = () => {
             <Button variant='' className="buttonAddProduct" onClick={() => setShowAddProductModal(true)}>Agregar Empanada</Button>
           </div>
         </div>
-        <div className='table-container mt-4' >
+        <div className='table-container mt-4 scrollable-x-table' >
           <Table striped bordered hover>
             <thead>
               <tr>

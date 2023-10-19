@@ -5,8 +5,11 @@ import Table from 'react-bootstrap/Table'
 import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
+
 import { TokenStorage } from "../../../utils/TokenStorage"
+import { tokenIsValid } from '../../../utils/TokenIsValid'
 import { useNavigate } from "react-router-dom"
+
 import InputGroup from "react-bootstrap/InputGroup"
 import { BsSearch, BsPrinterFill } from "react-icons/bs"
 import { AddExpense } from './AddExpense'
@@ -33,11 +36,13 @@ export const ExpensesScreen = () => {
   const [selectedExpense, setSelectedExpense] = useState(null)
 
   const store = TokenStorage()
+  const decodedToken = tokenIsValid()
   const navigate = useNavigate()
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
+  const [totalExpenses, setTotalExpenses] = useState(0)
   //Funcion para convertir fecha a la zona horaria local
   function formatDate(dateString) {
     const utcDate = new Date(dateString);
@@ -58,7 +63,7 @@ export const ExpensesScreen = () => {
   }
 
   useEffect(() => {
-    if (store.tokenValid) {
+    if (store.tokenValid && decodedToken.isAdmin === true) {
       axios.get('/expenses', {
         headers: {
           "access-token": store.token
@@ -106,7 +111,7 @@ export const ExpensesScreen = () => {
     } else {
       navigate("/login")
     }
-  }, [navigate, store.token, store.tokenValid])
+  }, [navigate, store.token, store.tokenValid, decodedToken.isAdmin])
 
 
   //MANEJO PARA ELIMINAR PRODUCTO
@@ -168,8 +173,11 @@ export const ExpensesScreen = () => {
         }
       })
       setExpenses(response.data)
+      // Paso 2: Actualizar el estado totalExpenses
+      const subtotal = calculateTotalExpenses();
+      setTotalExpenses(subtotal);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   }
 
@@ -189,7 +197,7 @@ export const ExpensesScreen = () => {
     return subtotal === 0 ? 0 : subtotal;
   }
   // Función para calcular el total de todos los valores expense.payment
-  function calculateSubtotal() {
+  function calculateTotalExpenses() {
     return filteredExpenses.reduce((total, expense) => total + expense.payment, 0);
   }
 
@@ -242,7 +250,7 @@ export const ExpensesScreen = () => {
     printWindow.document.write('<th>Pago a cuenta</th>');
     printWindow.document.write('<th>Saldo</th>');
     printWindow.document.write('</tr></thead><tbody>');
-  
+
     // Agrega los datos de los gastos a la tabla de la ventana de impresión
     filteredExpenses.slice().sort(compareExpenses).forEach((expense) => {
       printWindow.document.write('<tr>');
@@ -260,48 +268,56 @@ export const ExpensesScreen = () => {
       printWindow.document.write('</td>');
       printWindow.document.write('</tr>');
     });
-  
+
     printWindow.document.write('</tbody></table>');
     printWindow.document.write('</body></html>');
-  
+
     printWindow.document.close();
     printWindow.print();
     printWindow.close();
   };
-  
 
-//FUNCION PARA IMPRIMIR EL ARQUEO
-const handlePrintArqueo = () => {
-  const printWindow = window.open('', '', 'width=800,height=600')
-  printWindow.document.write('<html><head><title>Total Gastos</title></head><body>')
-  printWindow.document.write('<h1>Gastos</h1>')
-  printWindow.document.write('<table border="1">')
-  printWindow.document.write('<thead><tr>')
-  printWindow.document.write('<th>Fecha</th>')
 
-  printWindow.document.write('</tr></thead><tbody>')
-
-  // Agrega los datos de los productos a la tabla de la ventana de impresión
-  filteredExpenses.slice().sort(compareExpenses).forEach((expense) => {
+  //FUNCION PARA IMPRIMIR EL ARQUEO
+  const handlePrintSummary = () => {
+    const printWindow = window.open('', '', 'width=800,height=600')
+    printWindow.document.write('<html><head><title>Total Gastos</title></head><body>')
+    printWindow.document.write('<h1>Gastos</h1>')
+    printWindow.document.write('<table border="1">')
+    printWindow.document.write('<thead><tr>')
+    printWindow.document.write('<th className="homeText text-center align-middle expenseTitle"></th>')
+    printWindow.document.write('<th className="homeText text-center align-middle expenseTitle">Cantidad</th>')
+    printWindow.document.write('<th className="homeText text-center align-middle expenseTitle">Subtotal</th>')
+    printWindow.document.write('</tr></thead><tbody>')
+    const wayToPayData = [
+      { wayToPay: 'Efectivo', count: calculateCountByWayToPay("efectivo"), subtotal: calculateSubtotalByWayToPay("efectivo") },
+      { wayToPay: 'Mercado Pago', count: calculateCountByWayToPay("mercadoPago"), subtotal: calculateSubtotalByWayToPay("mercadoPago") },
+      { wayToPay: 'Transferencias', count: calculateCountByWayToPay("transferencia"), subtotal: calculateSubtotalByWayToPay("transferencia") },
+    ];
+    wayToPayData.forEach((data) => {
+      printWindow.document.write('<tr>')
+      printWindow.document.write(`<td>${data.wayToPay}</td>`)
+      printWindow.document.write(`<td>${data.count}</td>`)
+      printWindow.document.write(`<td>$${data.subtotal}</td>`)
+      printWindow.document.write('</tr>')
+    });
     printWindow.document.write('<tr>')
-    printWindow.document.write(`<td>${formatTableDate(formatDate(expense.date))}</td>`)
-
+    printWindow.document.write('<td colSpan="2"><b>TOTAL</b></td>')
+    printWindow.document.write(`<td><b>$${calculateTotalExpenses()}</b></td>`)
     printWindow.document.write('</tr>')
-  })
+    printWindow.document.write('</tbody></table>')
+    printWindow.document.write('</body></html>')
+    printWindow.document.close()
+    printWindow.print()
+    printWindow.close()
+  }
 
-  printWindow.document.write('</tbody></table>')
-  printWindow.document.write('</body></html>')
-
-  printWindow.document.close()
-  printWindow.print()
-  printWindow.close()
-}
   return (
     <>
       <div className='text-center p-5'>
         <h1 className='mb-5 expenseTitle'><b>Gastos Realizados</b></h1>
         <div className='row d-md-flex'>
-          <div className='col-2 my-2 my-md-0'>
+          <div className='col-12 col-md-2 my-2 my-md-0'>
             <InputGroup>
               <Form.Control
                 type="date"
@@ -314,7 +330,7 @@ const handlePrintArqueo = () => {
               />
             </InputGroup>
           </div>
-          <div className='col-2 my-2 my-md-0'>
+          <div className='col-12 col-md-2 my-2 my-md-0'>
             <InputGroup>
               <Form.Control
                 type="date"
@@ -326,37 +342,12 @@ const handlePrintArqueo = () => {
                 }} />
             </InputGroup>
           </div>
-          {/* <div className='col-3 my-2 my-md-0'>
-            <InputGroup>
-              <InputGroup.Text id="btnGroupAddon">
-                <BsSearch />
-              </InputGroup.Text>
-              <Form.Control
-                maxLength={30}
-                type="text"
-                placeholder="Buscar venta"
-                value={searchTerm}
-                onChange={handleSearchInputChange}
-              />
-            </InputGroup>
-          </div> */}
-          {/* <div className='col-3 my-md-0'>
-            <Form.Group className='d-flex' controlId="orderOptionForm">
-              <Form.Label className='w-50' column sm={2}><b className='homeText expenseTitle'>Ordenar por:</b></Form.Label>
-              <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
-                <option value="Variedad ↓">Fecha ↓</option>
-                <option value="Variedad ↑">Fecha ↑</option>
-                <option value="Stock ↓">Stock ↓</option>
-                <option value="Stock ↑">Stock ↑</option>
-              </Form.Select>
-            </Form.Group>
-          </div> */}
-                    <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
+          <div className='col-12 col-xl-2 my-2 my-md-0 ms-auto'>
             <Button variant='' className="buttonAddProduct" onClick={() => setShowAddExpenseModal(true)}>Agregar Gasto</Button>
           </div>
         </div>
-        <div className='table-container mt-4' >
-          <Table striped bordered hover>
+        <div className='table-container mt-4 scrollable-x-table scrollable-y-table' >
+          <Table striped bordered hover className=" ">
             <thead>
               <tr>
                 <th className='homeText text-center align-middle expenseTitle'>Fecha</th>
@@ -382,9 +373,6 @@ const handlePrintArqueo = () => {
             </thead>
             <tbody>
               {filteredExpenses.slice().sort(compareExpenses).map((expense) => {
-                // const product = products.find((product) => product._id === expense.product);
-                // const client = clients.find((client) => client._id === expense.client);
-                // const user = users.find((user) => user._id === expense.user);
                 return (
                   <tr key={expense._id}>
                     <td className="text-center align-middle">{formatTableDate(formatDate(expense.date))}</td>
@@ -424,41 +412,43 @@ const handlePrintArqueo = () => {
         <AddExpense show={showAddExpenseModal} onHide={handleCloseAddExpenseModal} fetchExpenses={fetchExpenses} />
         <DeleteExpense show={showDeleteExpenseModal} onHide={handleCloseDeleteExpenseModal} fetchExpenses={fetchExpenses} selectedExpense={selectedExpense} />
         <EditExpense show={showEditExpenseModal} onHide={handleCloseEditExpenseModal} fetchExpenses={fetchExpenses} selectedExpense={selectedExpense} />
-        <div className='d-flex justify-content-between mt-5'>
-          <h1 className='mx-5 productTitle'><b>Arqueo</b></h1>
-          <Button className='m-1' variant="secondary" onClick={handlePrintArqueo}>Imprimir Arqueo  <BsPrinterFill /></Button>
+        <div className='d-md-flex justify-content-between mt-5'>
+          <h1 className='mx-5 productTitle'><b>Resumen de Gastos:</b></h1>
+          <Button className='m-1' variant="secondary" onClick={handlePrintSummary}>Imprimir Resumen  <BsPrinterFill /></Button>
         </div>
         <div className='table-container mt-4'>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th className='homeText text-center align-middle expenseTitle'></th>
-                <th className='homeText text-center align-middle expenseTitle'>Cantidad</th>
-                <th className='homeText text-center align-middle expenseTitle'>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Efectivo</td>
-                <td>{calculateCountByWayToPay("efectivo")}</td>
-                <td>${calculateSubtotalByWayToPay("efectivo")}</td>
-              </tr>
-              <tr>
-                <td>Mercado Pago</td>
-                <td>{calculateCountByWayToPay("mercadoPago")}</td>
-                <td>${calculateSubtotalByWayToPay("mercadoPago")}</td>
-              </tr>
-              <tr>
-                <td>Transferencias</td>
-                <td>{calculateCountByWayToPay("transferencia")}</td>
-                <td>${calculateSubtotalByWayToPay("transferencia")}</td>
-              </tr>
-              <tr>
-                <td colSpan={2}><b>TOTAL</b></td>
-                <td><b>${calculateSubtotal()}</b></td>
-              </tr>
-            </tbody>
-          </Table>
+          <div className='table-container mt-4 scrollable-x-table' >
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th className='homeText text-center align-middle expenseTitle'></th>
+                  <th className='homeText text-center align-middle expenseTitle'>Cantidad</th>
+                  <th className='homeText text-center align-middle expenseTitle'>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Efectivo</td>
+                  <td>{calculateCountByWayToPay("efectivo")}</td>
+                  <td>${calculateSubtotalByWayToPay("efectivo")}</td>
+                </tr>
+                <tr>
+                  <td>Mercado Pago</td>
+                  <td>{calculateCountByWayToPay("mercadoPago")}</td>
+                  <td>${calculateSubtotalByWayToPay("mercadoPago")}</td>
+                </tr>
+                <tr>
+                  <td>Transferencias</td>
+                  <td>{calculateCountByWayToPay("transferencia")}</td>
+                  <td>${calculateSubtotalByWayToPay("transferencia")}</td>
+                </tr>
+                <tr>
+                  <td colSpan={2}><b>TOTAL</b></td>
+                  <td><b>${calculateTotalExpenses()}</b></td>
+                </tr>
+              </tbody>
+            </Table>
+          </div>
         </div>
       </div>
     </>

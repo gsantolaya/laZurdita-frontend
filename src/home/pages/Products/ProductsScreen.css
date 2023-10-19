@@ -17,3 +17,17 @@
     background-color: #5f3c23 !important;
     color: white !important;
   }
+  @media screen and (max-width: 576px) {
+    .scrollable-x-table {
+      overflow-x: scroll !important;
+    }
+    .scrollable-x-table::-webkit-scrollbar {
+      height: 5px;
+    }
+    .scrollable-x-table::-webkit-scrollbar-thumb {
+      background-color: #5f3c23;
+    }
+    .scrollable-x-table::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+  }

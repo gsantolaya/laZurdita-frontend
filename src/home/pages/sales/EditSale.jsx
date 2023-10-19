@@ -55,14 +55,13 @@ export const EditSale = ({ show, onHide, fetchSales, selectedSale }) => {
     const clientData = clientResponse.data
 
     // Calculate the new balance
-    const unitPrice = selectedSale.unitPrice;
-    const amount = selectedSale.amount;
+    // const unitPrice = selectedSale.unitPrice;
+    // const amount = selectedSale.amount;
     const lastPayment = selectedSale.payment
     const newPayment = formData.payment;
-    // const tip = formData.tip || 0; // Default to 0 if no tip provided
     const previousBalance = clientData.balance;
-    const newBalance = previousBalance + (unitPrice * amount) - lastPayment - newPayment
-
+    const newBalance = previousBalance - (newPayment - lastPayment)
+                    //         250     -    500     -     250        
     try {
       const updatedSale = {
         firstName: selectedSale.firstName,

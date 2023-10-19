@@ -5,14 +5,17 @@ import Table from 'react-bootstrap/Table'
 import axios from 'axios'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
+
 import { TokenStorage } from "../../../utils/TokenStorage"
+import { tokenIsValid } from '../../../utils/TokenIsValid'
 import { useNavigate } from "react-router-dom"
+
 import InputGroup from "react-bootstrap/InputGroup"
 import { BsSearch, BsPrinterFill } from "react-icons/bs"
-import "./SalesScreen.css"
 import { AddSale } from './AddSale'
 import { DeleteSale } from './DeleteSale'
 import { EditSale } from './EditSale'
+import "./SalesScreen.css"
 
 //COMPONENTE
 export const SalesScreen = () => {
@@ -22,8 +25,10 @@ export const SalesScreen = () => {
   const [products, setProducts] = useState([])
   const [clients, setClients] = useState([])
   const [users, setUsers] = useState([])
+
   const [searchTerm, setSearchTerm] = useState('')
-  const [orderOption, setOrderOption] = useState('name')
+  const [orderOption, setOrderOption] = useState('date ↓');
+  const [searchOption, setSearchOption] = useState('client')
 
   const [showAddSaleModal, setShowAddSaleModal] = useState(false)
   const handleCloseAddSaleModal = () => setShowAddSaleModal(false)
@@ -33,7 +38,9 @@ export const SalesScreen = () => {
   const [showEditSaleModal, setShowEditSaleModal] = useState(false)
   const [selectedSale, setSelectedSale] = useState(null)
 
+
   const store = TokenStorage()
+  const decodedToken = tokenIsValid()
   const navigate = useNavigate()
 
   const [startDate, setStartDate] = useState('')
@@ -54,12 +61,12 @@ export const SalesScreen = () => {
       const [year, month, day] = parts;
       return `${day}/${month}/${year}`;
     } else {
-      return inputDate; // Devuelve la fecha original si no está en el formato esperado
+      return inputDate
     }
   }
 
   useEffect(() => {
-    if (store.tokenValid) {
+    if (store.tokenValid && decodedToken.isAdmin === true) {
       axios.get('/sales', {
         headers: {
           "access-token": store.token
@@ -107,7 +114,7 @@ export const SalesScreen = () => {
     } else {
       navigate("/login")
     }
-  }, [navigate, store.token, store.tokenValid])
+  }, [navigate, store.token, store.tokenValid, decodedToken.isAdmin])
 
 
   //MANEJO PARA ELIMINAR PRODUCTO
@@ -129,13 +136,18 @@ export const SalesScreen = () => {
     setShowEditSaleModal(false)
   }
 
-  const handleOrderOptionChange = (event) => {
-    setOrderOption(event.target.value)
-  }
+  //MANEJO PARA BUSQUEDA Y FILTRO
   const handleSearchInputChange = (event) => {
     setSearchTerm(event.target.value)
   }
+  const handleSearchOptionChange = (event) => {
+    setSearchOption(event.target.value)
+  }
+  const handleOrderOptionChange = (event) => {
+    setOrderOption(event.target.value)
+  }
 
+  //FUNCION PARA FILTRAR LAS VENTAS
   //FUNCION PARA FILTRAR LAS VENTAS
   const filteredSales = sales.filter((sale) => {
     const saleDate = sale.date.toLowerCase();
@@ -144,20 +156,29 @@ export const SalesScreen = () => {
     // Comprueba si la fecha está dentro del rango seleccionado
     const isWithinDateRange = (!startDate || saleDate >= startDate) && (!endDate || saleDate <= endDate);
 
-    return isWithinDateRange && saleStatus;
+    const client = clients.find((client) => client._id === sale.client);
+    const user = users.find((user) => user._id === sale.user);
+    const product = products.find((product) => product._id === sale.product);
+
+    switch (searchOption) {
+      case 'client':
+        return isWithinDateRange && saleStatus && client && `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+      case 'user':
+        return isWithinDateRange && saleStatus && user && `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+      case 'product':
+        return isWithinDateRange && saleStatus && product && product.type.toLowerCase().includes(searchTerm.toLowerCase());
+      default:
+        return isWithinDateRange && saleStatus && client && client.firstName.toLowerCase().includes(searchTerm.toLowerCase());
+    }
   });
 
 
   //FUNCION PARA ORDENAR LAS VENTAS
   function compareSales(a, b) {
-    if (orderOption === 'Variedad ↓') {
-      return a.type.localeCompare(b.type)
-    } else if (orderOption === 'Variedad ↑') {
-      return b.type.localeCompare(a.type)
-    } else if (orderOption === 'Stock ↓') {
-      return b.stock - a.stock
-    } else if (orderOption === 'Stock ↑') {
-      return a.stock - b.stock
+    if (orderOption === 'date ↑') {
+      return new Date(a.date) - new Date(b.date);
+    } else if (orderOption === 'date ↓') {
+      return new Date(b.date) - new Date(a.date);
     }
     return 0
   }
@@ -252,13 +273,10 @@ export const SalesScreen = () => {
     printWindow.document.write('<th>Saldo</th>')
     printWindow.document.write('<th>Propina</th>')
     printWindow.document.write('</tr></thead><tbody>')
-
-    // Agrega los datos de los productos a la tabla de la ventana de impresión
     filteredSales.slice().sort(compareSales).forEach((sale) => {
       const product = products.find((product) => product._id === sale.product);
       const client = clients.find((client) => client._id === sale.client);
       const user = users.find((user) => user._id === sale.user);
-
       printWindow.document.write('<tr>')
       printWindow.document.write(`<td>${formatTableDate(formatDate(sale.date))}</td>`)
       printWindow.document.write(`<td>${user ? `${user.lastName}, ${user.firstName}` : ''}</td>`)
@@ -274,71 +292,138 @@ export const SalesScreen = () => {
       printWindow.document.write(`<td>${sale.tip || 0}</td>`)
       printWindow.document.write('</tr>')
     })
-
     printWindow.document.write('</tbody></table>')
     printWindow.document.write('</body></html>')
-
     printWindow.document.close()
     printWindow.print()
     printWindow.close()
   }
 
-//FUNCION PARA IMPRIMIR EL ARQUEO
-const handlePrintArqueo = () => {
-  const printWindow = window.open('', '', 'width=800,height=600')
-  printWindow.document.write('<html><head><title>Tabla de Ventas</title></head><body>')
-  printWindow.document.write('<h1>Ventas</h1>')
-  printWindow.document.write('<table border="1">')
-  printWindow.document.write('<thead><tr>')
-  printWindow.document.write('<th>Fecha</th>')
-  printWindow.document.write('<th>Vendedor</th>')
-  printWindow.document.write('<th>Cliente</th>')
-  printWindow.document.write('<th>Cantidad</th>')
-  printWindow.document.write('<th>Descripción</th>')
-  printWindow.document.write('<th>Estado</th>')
-  printWindow.document.write('<th>Precio Unitario</th>')
-  printWindow.document.write('<th>Total</th>')
-  printWindow.document.write('<th>Forma de pago</th>')
-  printWindow.document.write('<th>Pago a cuenta</th>')
-  printWindow.document.write('<th>Saldo</th>')
-  printWindow.document.write('<th>Propina</th>')
-  printWindow.document.write('</tr></thead><tbody>')
+  //FUNCION PARA IMPRIMIR EL RESUMEN
+  const handlePrintSummary = () => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write('<html><head><title>Resumen de Ventas</title></head><body>');
+    printWindow.document.write('<h1>Resumen de Ventas</h1>');
+  
+    // Print the first table
+    printWindow.document.write('<h2>Resumen de Formas de Pago</h2>');
+    printWindow.document.write('<table border="1">');
+    printWindow.document.write('<thead><tr>');
+    printWindow.document.write('<th></th>');
+    printWindow.document.write('<th>Cantidad</th>');
+    printWindow.document.write('<th>Subtotal</th>');
+    printWindow.document.write('</tr></thead><tbody>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td>Efectivo</td>');
+    printWindow.document.write(`<td>${calculateCountByWayToPay("efectivo")}</td>`);
+    printWindow.document.write(`<td>$${calculateSubtotalByWayToPay("efectivo")}</td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td>Mercado Pago</td>');
+    printWindow.document.write(`<td>${calculateCountByWayToPay("mercadoPago")}</td>`);
+    printWindow.document.write(`<td>$${calculateSubtotalByWayToPay("mercadoPago")}</td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td>Transferencias</td>');
+    printWindow.document.write(`<td>${calculateCountByWayToPay("transferencia")}</td>`);
+    printWindow.document.write(`<td>$${calculateSubtotalByWayToPay("transferencia")}</td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td colSpan="2"><b>SUBTOTAL</b></td>');
+    printWindow.document.write(`<td><b>$${calculateSubtotal()}</b></td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td>Propinas</td>');
+    printWindow.document.write(`<td>${filteredSales.filter(sale => sale.tip !== null && sale.tip !== 0).length || 0}</td>`);
+    printWindow.document.write(`<td>$${calculateTotalTips()}</td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td colSpan="2"><b>TOTAL</b></td>');
+    printWindow.document.write(`<td><b>$${calculateSubtotal() + calculateTotalTips()}</b></td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('</tbody></table>');
+  
+    // Print the second table
+    printWindow.document.write('<h2>Resumen de Ventas por Estado</h2>');
+    printWindow.document.write('<table border="1">');
+    printWindow.document.write('<thead><tr>');
+    printWindow.document.write('<th>Estado</th>');
+    printWindow.document.write('<th>Vendidas x unidad</th>');
+    printWindow.document.write('</tr></thead><tbody>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td>Horneadas</td>');
+    printWindow.document.write(`<td>${cantidadHorneadas}</td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('<tr>');
+    printWindow.document.write('<td>Congeladas</td>');
+    printWindow.document.write(`<td>${cantidadCongeladas}</td>`);
+    printWindow.document.write('</tr>');
+    printWindow.document.write('</tbody></table>');
+  
+    // Print the third table
+    printWindow.document.write('<h2>Resumen de Ventas por Variedad de Empanadas</h2>');
+    printWindow.document.write('<table border="1">');
+    printWindow.document.write('<thead><tr>');
+    printWindow.document.write('<th>Variedad de Empanadas</th>');
+    printWindow.document.write('<th>Vendidas x unidad</th>');
+    printWindow.document.write('</tr></thead><tbody>');
+    uniqueProductVarieties.forEach(variety => {
+      printWindow.document.write('<tr>');
+      printWindow.document.write(`<td>${variety}</td>`);
+      printWindow.document.write(`<td>${productsSoldByVariety[variety]}</td>`);
+      printWindow.document.write('</tr>');
+    });
+    printWindow.document.write('</tbody></table>');
+  
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+  };
+  
 
-  // Agrega los datos de los productos a la tabla de la ventana de impresión
-  filteredSales.slice().sort(compareSales).forEach((sale) => {
-    const product = products.find((product) => product._id === sale.product);
-    const client = clients.find((client) => client._id === sale.client);
-    const user = users.find((user) => user._id === sale.user);
+  // OBTENER EL TOTAL DE EMPANADAS VENDIDAS HORNEADAS O CONGELADAS
+  const horneadasSales = filteredSales.filter(sale => sale.productStatus === 'horneadas');
+  const congeladasSales = filteredSales.filter(sale => sale.productStatus === 'congeladas');
+  const cantidadHorneadas = horneadasSales.reduce((total, sale) => {
+    if (sale.amountDescription === 'docena') {
+      return total + sale.amount * 12;
+    }
+    return total + sale.amount;
+  }, 0);
+  const cantidadCongeladas = congeladasSales.reduce((total, sale) => {
+    if (sale.amountDescription === 'docena') {
+      return total + sale.amount * 12;
+    }
+    return total + sale.amount;
+  }, 0);
 
-    printWindow.document.write('<tr>')
-    printWindow.document.write(`<td>${formatTableDate(formatDate(sale.date))}</td>`)
-    printWindow.document.write(`<td>${user ? `${user.lastName}, ${user.firstName}` : ''}</td>`)
-    printWindow.document.write(`<td>${client ? `${client.lastName}, ${client.firstName}` : ''}</td>`)
-    printWindow.document.write(`<td>${sale.amount}</td>`)
-    printWindow.document.write(`<td>${product ? `${product.type}` : ''}</td>`)
-    printWindow.document.write(`<td>${sale.productStatus}</td>`)
-    printWindow.document.write(`<td>${sale.unitPrice}</td>`)
-    printWindow.document.write(`<td>${sale.unitPrice * sale.amount}</td>`)
-    printWindow.document.write(`<td>${sale.wayToPay}</td>`)
-    printWindow.document.write(`<td>${sale.payment}</td>`)
-    printWindow.document.write(`<td>${sale.amount * sale.unitPrice - sale.payment}</td>`)
-    printWindow.document.write(`<td>${sale.tip || 0}</td>`)
-    printWindow.document.write('</tr>')
-  })
+  // OBTENER EL TOTAL DE EMPANADAS VENDIDAS POR VARIEDAD
+  const allProductVarieties = products.map(product => product.type);
+  const uniqueProductVarieties = [...new Set(allProductVarieties)];
+  const productsSoldByVariety = {};
+  uniqueProductVarieties.forEach(variety => {
+    const salesForVariety = filteredSales.filter(sale => {
+      const product = products.find(p => p._id === sale.product);
+      return product && product.type === variety;
+    });
 
-  printWindow.document.write('</tbody></table>')
-  printWindow.document.write('</body></html>')
+    const totalSoldForVariety = salesForVariety.reduce((total, sale) => {
+      if (sale.amountDescription === 'docena') {
+        return total + sale.amount * 12;
+      }
+      return total + sale.amount;
+    }, 0);
 
-  printWindow.document.close()
-  printWindow.print()
-  printWindow.close()
-}
+    productsSoldByVariety[variety] = totalSoldForVariety;
+  });
+
   return (
     <>
       <div className='text-center p-5'>
         <h1 className='mb-5 saleTitle'><b>Ventas Realizadas</b></h1>
         <div className='row d-md-flex'>
-          <div className='col-2 my-2 my-md-0'>
+          <div className='col-2'>
             <InputGroup>
               <Form.Control
                 type="date"
@@ -351,7 +436,7 @@ const handlePrintArqueo = () => {
               />
             </InputGroup>
           </div>
-          <div className='col-2 my-2 my-md-0'>
+          <div className='col-2'>
             <InputGroup>
               <Form.Control
                 type="date"
@@ -363,7 +448,7 @@ const handlePrintArqueo = () => {
                 }} />
             </InputGroup>
           </div>
-          <div className='col-3 my-2 my-md-0'>
+          <div className='col-3'>
             <InputGroup>
               <InputGroup.Text id="btnGroupAddon">
                 <BsSearch />
@@ -377,20 +462,28 @@ const handlePrintArqueo = () => {
               />
             </InputGroup>
           </div>
-          <div className='col-3 my-md-0'>
+          <div className='col-2'>
+            <Form.Group className='d-flex' controlId="searchOptionForm">
+              <Form.Label className='w-50' column sm={2}><b className='homeText clientTitle'>Buscar por:</b></Form.Label>
+              <Form.Select className='w-50' as="select" value={searchOption} onChange={handleSearchOptionChange}>
+                <option value="client">Cliente</option>
+                <option value="user">Vendedor</option>
+                <option value="product">Variedad</option>
+              </Form.Select>
+            </Form.Group>
+          </div>
+          <div className='col-3'>
             <Form.Group className='d-flex' controlId="orderOptionForm">
               <Form.Label className='w-50' column sm={2}><b className='homeText saleTitle'>Ordenar por:</b></Form.Label>
               <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
-                <option value="Variedad ↓">Variedad ↓</option>
-                <option value="Variedad ↑">Variedad ↑</option>
-                <option value="Stock ↓">Stock ↓</option>
-                <option value="Stock ↑">Stock ↑</option>
+                <option value="date ↓">Fecha ↓</option>
+                <option value="date ↑">Fecha ↑</option>
               </Form.Select>
             </Form.Group>
           </div>
         </div>
         <div className='table-container mt-4' >
-          <Table striped bordered hover>
+          <Table striped bordered hover className="scrollable-y-table scrollable-x-table">
             <thead>
               <tr>
                 <th className='homeText text-center align-middle saleTitle'>Fecha</th>
@@ -429,7 +522,7 @@ const handlePrintArqueo = () => {
                     <td className="text-center align-middle">
                       {client ? `${client.lastName}, ${client.firstName}` : ''}
                     </td>
-                    <td className="text-center align-middle">{sale.amount}</td>
+                    <td className="text-center align-middle">{sale.amount} x {sale.amountDescription}</td>
                     <td className="text-center align-middle">
                       {product ? `${product.type}` : ''}
                     </td>
@@ -467,11 +560,11 @@ const handlePrintArqueo = () => {
         <DeleteSale show={showDeleteSaleModal} onHide={handleCloseDeleteSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
         <EditSale show={showEditSaleModal} onHide={handleCloseEditSaleModal} fetchSales={fetchSales} selectedSale={selectedSale} />
         <div className='d-flex justify-content-between mt-5'>
-          <h1 className='mx-5 productTitle'><b>Arqueo</b></h1>
-          <Button className='m-1' variant="secondary" onClick={handlePrintArqueo}>Imprimir Arqueo  <BsPrinterFill /></Button>
+          <h1 className='mx-5 productTitle'><b>Resumen de ventas:</b></h1>
+          <Button className='m-1' variant="secondary" onClick={handlePrintSummary}>Imprimir Resumen  <BsPrinterFill /></Button>
         </div>
         <div className='table-container mt-4'>
-          <Table striped bordered hover>
+          <Table striped bordered hover className='scrollable-x-table'>
             <thead>
               <tr>
                 <th className='homeText text-center align-middle saleTitle'></th>
@@ -508,6 +601,40 @@ const handlePrintArqueo = () => {
                 <td colSpan={2}><b>TOTAL</b></td>
                 <td><b>${calculateSubtotal() + calculateTotalTips()}</b></td>
               </tr>
+            </tbody>
+          </Table>
+          <Table striped bordered hover className='scrollable-x-table'>
+            <thead>
+              <tr>
+                <th className='homeText text-center align-middle saleTitle'>Estado</th>
+                <th className='homeText text-center align-middle saleTitle'>Vendidas x unidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Horneadas</td>
+                <td>{cantidadHorneadas}</td>
+              </tr>
+              <tr>
+                <td>Congeladas</td>
+                <td>{cantidadCongeladas}</td>
+              </tr>
+            </tbody>
+          </Table>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th className='homeText text-center align-middle saleTitle'>Variedad de Empanadas</th>
+                <th className='homeText text-center align-middle saleTitle'>Vendidas x unidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uniqueProductVarieties.map(variety => (
+                <tr key={variety}>
+                  <td>{variety}</td>
+                  <td>{productsSoldByVariety[variety]}</td>
+                </tr>
+              ))}
             </tbody>
           </Table>
         </div>

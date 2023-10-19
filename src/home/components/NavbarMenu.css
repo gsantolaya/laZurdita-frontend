@@ -161,7 +161,7 @@
     }
 
     .smallScreen {
-        display: inherit !important;
+        display: none !important;
     }
 
     .bigScreen {
@@ -199,7 +199,7 @@
     }
 
     .smallScreen {
-        display: inherit !important;
+        display: none !important;
     }
 
     .bigScreen {

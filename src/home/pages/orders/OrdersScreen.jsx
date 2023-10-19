@@ -23,7 +23,7 @@ export const OrdersScreen = () => {
     const [users, setUsers] = useState([])
 
     const [searchTerm, setSearchTerm] = useState('')
-    const [orderOption, setOrderOption] = useState('date ↑');
+    const [orderOption, setOrderOption] = useState('date ↓');
     const [searchOption, setSearchOption] = useState('client')
 
     const [showAddOrderModal, setShowAddOrderModal] = useState(false)
@@ -139,28 +139,27 @@ export const OrdersScreen = () => {
     const filteredSales = pendingSales.filter((sale) => {
         const client = clients.find((client) => client._id === sale.client);
         const user = users.find((user) => user._id === sale.user);
-        const date = sale.date;
+        const date = formatDate(sale.date); // Convierte la fecha al formato "dd/mm/yyyy"
         const product = products.find((product) => product._id === sale.product);
-
         switch (searchOption) {
             case 'client':
-                return client && client.firstName.toLowerCase().includes(searchTerm.toLowerCase());
+                return client && `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
             case 'user':
                 return user && `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
             case 'date':
-                return date.includes(searchTerm.toLowerCase());
+                return date.includes(searchTerm.toLowerCase()); // Compara en el formato correcto
             case 'product':
                 return product && product.type.toLowerCase().includes(searchTerm.toLowerCase());
             default:
                 return client && client.firstName.toLowerCase().includes(searchTerm.toLowerCase());
         }
-    });
+    })
 
     //FUNCION PARA ORDENAR LOS PEDIDOS
     function compareSales(a, b) {
-        if (orderOption === 'date ↓') {
+        if (orderOption === 'date ↑') {
             return new Date(a.date) - new Date(b.date);
-        } else if (orderOption === 'date ↑') {
+        } else if (orderOption === 'date ↓') {
             return new Date(b.date) - new Date(a.date);
         }
         return 0
@@ -201,7 +200,7 @@ export const OrdersScreen = () => {
             printWindow.document.write(`<td>${user ? `${user.firstName} ${user.lastName}` : ''}</td>`)
             printWindow.document.write(`<td>Nombre: ${client ? `${client.lastName}, ${client.firstName}` : ''}<br>Dirección: ${client ? `${client.address}` : ''}<br>Teléfono: ${client ? `${client.phone}` : ''}</td>`)
             printWindow.document.write(`<td>Variedad: ${product ? `${product.type}` : ''}<br>Cantidad: ${sale.amount} - ${sale.amountDescription}<br>Estado: ${sale.productStatus}</td>`)
-            printWindow.document.write(`<td>${sale.unitPrice * sale.amount}</td>`)
+            printWindow.document.write(`<td>$${sale.unitPrice * sale.amount}</td>`)
             printWindow.document.write('</tr>')
         })
 
@@ -251,8 +250,6 @@ export const OrdersScreen = () => {
                             <Form.Select className='w-50' as="select" value={orderOption} onChange={handleOrderOptionChange}>
                                 <option value="date ↓">Fecha ↓</option>
                                 <option value="date ↑">Fecha ↑</option>
-                                {/* <option value="Stock ↓">Stock ↓</option>
-                                <option value="Stock ↑">Stock ↑</option> */}
                             </Form.Select>
                         </Form.Group>
                     </div>
@@ -260,8 +257,7 @@ export const OrdersScreen = () => {
                         <Nav.Link className="buttonAddClient" onClick={() => setShowAddOrderModal(true)}>Nuevo Pedido</Nav.Link>
                     </div>
                 </div>
-                <div className='table-container mt-4' >
-
+                <div className='table-container mt-4 scrollable-x-table' >
                     <Table striped bordered hover>
                         <thead>
                             <tr>
@@ -311,7 +307,7 @@ export const OrdersScreen = () => {
                                             </Button>
                                             <Button className='m-1' variant="danger" onClick={() => handleShowDeletSaleModal(sale)} >
                                                 <span className="d-flex align-items-center justify-content-center">
-                                                    Cancelar
+                                                    Eliminar
                                                 </span>
                                             </Button>
                                         </td>
