@@ -24,10 +24,6 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "start:development": "copy .env.development .env && react-scripts start",
-    "start:production": "copy .env.production .env && react-scripts start",
-    "build:production": "copy .env.production .env && react-scripts build",
-    
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
