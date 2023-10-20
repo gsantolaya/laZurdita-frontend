@@ -1,6 +1,7 @@
 {
   "name": "la",
   "version": "0.1.0",
+  "homepage": "./",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -23,6 +24,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "start:development": "copy .env.development .env && react-scripts start",
+    "start:production": "copy .env.production .env && react-scripts start",
+    "build:production": "copy .env.production .env && react-scripts build",
+    
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
