@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Form from "react-bootstrap/Form";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import "./RegisterScreen.css";
 import { FaUserAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { BsFillPersonCheckFill, BsFillPersonXFill } from "react-icons/bs";
@@ -10,6 +9,7 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { tokenIsValid } from '../../utils/TokenIsValid';
 import axios from "axios";
 import Toast from 'react-bootstrap/Toast';
+import "./RegisterScreen.css";
 
 export const RegisterScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -44,7 +44,7 @@ export const RegisterScreen = () => {
     }
 
     axios
-      .post("/users", {...data, isAdmin: true, isActivated: true})
+      .post("/users", {...data, isAdmin: false, isActivated: false})
       .then((response) => {
         console.log('SUCCESS!', response.status, response.text);
             setShowConfirmationRegisterToast(true);
