@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import './UsersScreen.css';
 import Table from 'react-bootstrap/Table';
 import axios from 'axios';
 import Button from 'react-bootstrap/Button';
@@ -9,6 +8,7 @@ import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { useForm } from 'react-hook-form';
 import Toast from 'react-bootstrap/Toast';
+import './UsersScreen.css';
 
 export const UsersScreen = () => {
   const [users, setUsers] = useState([]);
@@ -187,68 +187,72 @@ export const UsersScreen = () => {
       <div className='text-center p-5 table-container'>
         <h1 className="title mb-3 productTitle"><b>Bienvenid@ {decodedToken.firstName}</b></h1>
         <h4 className="text-start title mb-3 productTitle"><b>Mi usuario:</b></h4>
-        <Table striped bordered hover>
-          <tbody>
-            {
-              users.map((user) => {
-                const isCurrentUser = user.email === decodedToken.email;
-                if (!isCurrentUser) {
-                  return null;
-                }
-                return (
-                  <tr key={user._id}>
-                    <td className='py-4'>{user.email}</td>
-                    <td className='pt-3'>
-                      {isCurrentUser && (
-                        <>
-                          <Button className='m-1' variant="secondary" onClick={() => handleShowEditPassword(user)}>Modificar contraseña</Button>
-                          <Button className='m-1' onClick={() => handleShowEditMyUserModal(user)} variant="dark"><FaEdit /></Button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            }
-          </tbody>
-        </Table>
+        <div className='scrollable-x-table'>
+          <Table striped bordered hover>
+            <tbody>
+              {
+                users.map((user) => {
+                  const isCurrentUser = user.email === decodedToken.email;
+                  if (!isCurrentUser) {
+                    return null;
+                  }
+                  return (
+                    <tr key={user._id}>
+                      <td className='py-4'>{user.email}</td>
+                      <td className='pt-3'>
+                        {isCurrentUser && (
+                          <>
+                            <Button className='m-1' variant="secondary" onClick={() => handleShowEditPassword(user)}>Modificar contraseña</Button>
+                            <Button className='m-1' onClick={() => handleShowEditMyUserModal(user)} variant="dark"><FaEdit /></Button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              }
+            </tbody>
+          </Table>
+        </div>
       </div>
       {decodedToken.isAdmin && (
         <div className='text-center px-5 table-container mt-5 mt-md-0'>
           <h4 className="text-start title mb-3 productTitle"><b>Otros Usuarios:</b></h4>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th className='homeText productTitle'>Usuario</th>
-                <th className='homeText productTitle'>Apellido y Nombre</th>
-                <th className='homeText productTitle'>Tipo de cuenta</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => {
-                const isCurrentUser = user.email === decodedToken.email;
-                if (isCurrentUser) {
-                  return null;
-                }
-                const userClass = user.isActivated ? '' : 'inactive-user';
-                return (
-                  <tr key={user._id}>
-                    <td className={`py-4 ${userClass}`}>{user.email}</td>
-                    <td className={`py-4 ${userClass}`}>{user.lastName} {user.firstName}</td>
-                    <td className={`py-4 ${userClass}`}>{user.isAdmin ? 'Administrador' : 'Usuario'}</td>
-                    <td className='pt-3'>
-                      <Button className='m-1' variant="secondary" onClick={() => handleShowEditPassword(user)}>Modificar contraseña</Button>
-                      <Button className='m-1' onClick={() => handleShowEditMyUserModal(user)} variant="dark"><FaEdit /></Button>
-                      <Button className='m-1' onClick={() => handleShowDeleteUserModal(user)} variant="danger">
-                        <FaTrashAlt />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+          <div className='scrollable-x-table'>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th className='homeText productTitle'>Usuario</th>
+                  <th className='homeText productTitle'>Apellido y Nombre</th>
+                  <th className='homeText productTitle'>Tipo de cuenta</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => {
+                  const isCurrentUser = user.email === decodedToken.email;
+                  if (isCurrentUser) {
+                    return null;
+                  }
+                  const userClass = user.isActivated ? '' : 'inactive-user';
+                  return (
+                    <tr key={user._id}>
+                      <td className={`py-4 ${userClass}`}>{user.email}</td>
+                      <td className={`py-4 ${userClass}`}>{user.lastName} {user.firstName}</td>
+                      <td className={`py-4 ${userClass}`}>{user.isAdmin ? 'Administrador' : 'Usuario'}</td>
+                      <td className='pt-3'>
+                        <Button className='m-1' variant="secondary" onClick={() => handleShowEditPassword(user)}>Modificar contraseña</Button>
+                        <Button className='m-1' onClick={() => handleShowEditMyUserModal(user)} variant="dark"><FaEdit /></Button>
+                        <Button className='m-1' onClick={() => handleShowDeleteUserModal(user)} variant="danger">
+                          <FaTrashAlt />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+          </div>
         </div>
       )}
       <Modal show={showEditMyUserModal} onHide={handleCloseEditMyUserModal}>
