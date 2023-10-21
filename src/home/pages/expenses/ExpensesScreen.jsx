@@ -21,28 +21,17 @@ export const ExpensesScreen = () => {
 
   //DECLARACION DE CONSTANTES
   const [expenses, setExpenses] = useState([])
-  const [products, setProducts] = useState([])
-  const [clients, setClients] = useState([])
-  const [users, setUsers] = useState([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [orderOption, setOrderOption] = useState('name')
-
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false)
   const handleCloseAddExpenseModal = () => setShowAddExpenseModal(false)
-
   const [showDeleteExpenseModal, setShowDeleteExpenseModal] = useState(false)
-
   const [showEditExpenseModal, setShowEditExpenseModal] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState(null)
-
   const store = TokenStorage()
   const decodedToken = tokenIsValid()
   const navigate = useNavigate()
-
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
-  const [totalExpenses, setTotalExpenses] = useState(0)
   //Funcion para convertir fecha a la zona horaria local
   function formatDate(dateString) {
     const utcDate = new Date(dateString);
@@ -58,7 +47,7 @@ export const ExpensesScreen = () => {
       const [year, month, day] = parts;
       return `${day}/${month}/${year}`;
     } else {
-      return inputDate; // Devuelve la fecha original si no está en el formato esperado
+      return inputDate;
     }
   }
 
@@ -71,39 +60,6 @@ export const ExpensesScreen = () => {
       })
         .then((response) => {
           setExpenses(response.data)
-        })
-        .catch((error) => {
-          console.error(error)
-        })
-      axios.get('/products', {
-        headers: {
-          "access-token": store.token
-        }
-      })
-        .then((response) => {
-          setProducts(response.data)
-        })
-        .catch((error) => {
-          console.error(error)
-        })
-      axios.get('/clients', {
-        headers: {
-          "access-token": store.token
-        }
-      })
-        .then((response) => {
-          setClients(response.data)
-        })
-        .catch((error) => {
-          console.error(error)
-        })
-      axios.get('/users', {
-        headers: {
-          "access-token": store.token
-        }
-      })
-        .then((response) => {
-          setUsers(response.data)
         })
         .catch((error) => {
           console.error(error)
@@ -133,13 +89,6 @@ export const ExpensesScreen = () => {
     setShowEditExpenseModal(false)
   }
 
-  // const handleOrderOptionChange = (event) => {
-  //   setOrderOption(event.target.value)
-  // }
-  // const handleSearchInputChange = (event) => {
-  //   setSearchTerm(event.target.value)
-  // }
-
   //FUNCION PARA FILTRAR LAS VENTAS
   const filteredExpenses = expenses.filter((expense) => {
     const expenseDate = expense.date.toLowerCase();
@@ -148,22 +97,7 @@ export const ExpensesScreen = () => {
     const isWithinDateRange = (!startDate || expenseDate >= startDate) && (!endDate || expenseDate <= endDate);
 
     return isWithinDateRange
-  });
-
-
-  //FUNCION PARA ORDENAR LAS VENTAS
-  function compareExpenses(a, b) {
-    if (orderOption === 'Variedad ↓') {
-      return a.type.localeCompare(b.type)
-    } else if (orderOption === 'Variedad ↑') {
-      return b.type.localeCompare(a.type)
-    } else if (orderOption === 'Stock ↓') {
-      return b.stock - a.stock
-    } else if (orderOption === 'Stock ↑') {
-      return a.stock - b.stock
-    }
-    return 0
-  }
+  })
 
   const fetchExpenses = async () => {
     try {
@@ -173,9 +107,6 @@ export const ExpensesScreen = () => {
         }
       })
       setExpenses(response.data)
-      // Paso 2: Actualizar el estado totalExpenses
-      const subtotal = calculateTotalExpenses();
-      setTotalExpenses(subtotal);
     } catch (error) {
       console.error(error);
     }
@@ -252,7 +183,7 @@ export const ExpensesScreen = () => {
     printWindow.document.write('</tr></thead><tbody>');
 
     // Agrega los datos de los gastos a la tabla de la ventana de impresión
-    filteredExpenses.slice().sort(compareExpenses).forEach((expense) => {
+    filteredExpenses.slice().sort(expenses).forEach((expense) => {
       printWindow.document.write('<tr>');
       printWindow.document.write(`<td>${formatTableDate(formatDate(expense.date))}</td>`);
       printWindow.document.write(`<td>${expense.voucherNumber}</td>`);
@@ -372,7 +303,7 @@ export const ExpensesScreen = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredExpenses.slice().sort(compareExpenses).map((expense) => {
+              {filteredExpenses.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).map((expense) => {
                 return (
                   <tr key={expense._id}>
                     <td className="text-center align-middle">{formatTableDate(formatDate(expense.date))}</td>
